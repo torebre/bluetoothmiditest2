@@ -24,7 +24,6 @@ class MidiMessageTranslator(private val receiver: MidiMessageHandler): MidiRecei
     }
 
 
-    @ExperimentalUnsignedTypes
     override fun onSend(
         msg: ByteArray,
         offset: Int,

@@ -29,8 +29,6 @@ import com.kjipo.bluetoothmidi.BluetoothDeviceData
 import com.kjipo.bluetoothmidi.R
 import com.kjipo.bluetoothmidi.devicelist.DeviceDataSource
 import com.kjipo.bluetoothmidi.devicelist.DeviceListAdapter
-import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
-import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModelFactory
 import timber.log.Timber
 import java.util.*
 
@@ -57,9 +55,9 @@ class MidiRecord : Fragment() {
 
     private var isScanning = false
 
-    private val deviceListViewModel by viewModels<DeviceListViewModel> {
-        DeviceListViewModelFactory()
-    }
+//    private val deviceListViewModel by viewModels<DeviceListViewModel> {
+//        DeviceListViewModelFactory()
+//    }
 
     private val BluetoothAdapter.isDisabled: Boolean
         get() = !isEnabled
@@ -105,9 +103,9 @@ class MidiRecord : Fragment() {
         val deviceListAdapter = DeviceListAdapter()
         deviceView.adapter = deviceListAdapter
 
-        deviceListViewModel.deviceLiveData.observe(this) { liveData ->
-            deviceListAdapter.submitList(liveData)
-        }
+//        deviceListViewModel.deviceLiveData.observe(this) { liveData ->
+//            deviceListAdapter.submitList(liveData)
+//        }
 
         tracker = SelectionTracker.Builder(
             "selection",
