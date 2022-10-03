@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavigationDrawer(
+    navigateToMidiDevices: () -> Unit,
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -18,8 +19,8 @@ fun NavigationDrawer(
     ModalDrawerSheet(modifier) {
 
         NavigationDrawerItem(
-            label = { Text("Test1") },
-            onClick = { closeDrawer() },
+            label = { Text("MIDI devices") },
+            onClick = { navigateToMidiDevices(); closeDrawer() },
             selected = true
         )
         NavigationDrawerItem(
