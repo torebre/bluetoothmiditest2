@@ -2,14 +2,15 @@ package com.kjipo.bluetoothmidi
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +38,14 @@ fun BluetoothMidiApp(appContainer: AppContainer,
             )
         }) {
             Row {
-                AppNavGraph(appContainer = appContainer, navController = navController)
+                AppNavGraph(appContainer = appContainer,
+                    navController = navController,
+                connectToDevice = navigationActions.navigateToConnectScreen,
+                toggleScan = {
+                    runBlocking {
+                        appContainer.deviceScanner.toggleScan()
+                    }
+                })
             }
         }
 

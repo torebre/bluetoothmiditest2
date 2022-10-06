@@ -16,6 +16,7 @@ import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
 
 enum class NavigationDestinations {
     DEVICE_LIST,
+    CONNECT
 //    RECORD_DATA,
 //    VIEW_DATA
 }
@@ -36,6 +37,17 @@ class NavigationActions(navController: NavHostController) {
             restoreState = true
         }
     }
+
+    val navigateToConnectScreen: (String) -> Unit = { deviceAddress ->
+        navController.navigate("${NavigationDestinations.CONNECT.name}/$deviceAddress") {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
 }
 
 @Composable
@@ -43,7 +55,9 @@ fun AppNavGraph(
     appContainer: AppContainer,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = NavigationDestinations.DEVICE_LIST.name
+    startDestination: String = NavigationDestinations.DEVICE_LIST.name,
+    connectToDevice: (String) -> Unit,
+    toggleScan: () -> Unit
 ) {
 
     NavHost(
@@ -54,7 +68,11 @@ fun AppNavGraph(
         composable(NavigationDestinations.DEVICE_LIST.name) {
             val deviceListModel: DeviceListViewModel =
                 viewModel(factory = DeviceListViewModel.provideFactory(appContainer.deviceScanner))
-            MidiDeviceListRoute(deviceListModel)
+            MidiDeviceListRoute(deviceListModel, toggleScan, connectToDevice)
+        }
+        composable(NavigationDestinations.CONNECT.name) {
+            // TODO
+//            ConnectRoute()
         }
     }
 
@@ -62,16 +80,32 @@ fun AppNavGraph(
 
 
 @Composable
-fun MidiDeviceListRoute(deviceListViewModel: DeviceListViewModel) {
+fun MidiDeviceListRoute(
+    deviceListViewModel: DeviceListViewModel,
+    toggleScan: () -> Unit,
+    connect: (String) -> Unit
+) {
     val uiState by deviceListViewModel.uiState.collectAsState()
 
-    MidiDeviceListRoute(uiState)
+    MidiDeviceListRoute(
+        uiState,
+        toggleScan = toggleScan,
+        connect = connect
+    )
 
 }
 
 @Composable
-fun MidiDeviceListRoute(uiState: MidiDevicesUiState) {
+fun MidiDeviceListRoute(
+    uiState: MidiDevicesUiState, toggleScan: () -> Unit,
+    connect: (String) -> Unit
+) {
+    MidiDeviceList(toggleScan, uiState.isScanning, connect, uiState.foundDevices)
+}
 
-    MidiDeviceList(foundDevices = uiState.foundDevices)
+
+@Composable
+fun ConnectRoute() {
+    // TODO
 
 }
