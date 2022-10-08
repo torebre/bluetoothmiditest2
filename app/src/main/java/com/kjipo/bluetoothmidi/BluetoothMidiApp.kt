@@ -52,9 +52,7 @@ fun BluetoothMidiApp(
             }
         }
 
-
     }
-
 
 }
 

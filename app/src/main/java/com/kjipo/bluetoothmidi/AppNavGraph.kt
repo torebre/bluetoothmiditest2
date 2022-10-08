@@ -1,14 +1,9 @@
 package com.kjipo.bluetoothmidi
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -85,16 +80,6 @@ fun AppNavGraph(
 
 }
 
-
-@Composable
-fun HomeRoute() {
-    Text(
-        text = "Test24",
-        modifier = Modifier
-            .fillMaxSize(1f)
-            .border(width = Dp(10.0f), color = Color.Green)
-    )
-}
 
 @Composable
 fun MidiDeviceListRoute(

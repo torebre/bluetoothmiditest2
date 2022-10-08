@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
         requestPermissions()
 
         val appContainer = (application as BluetoothMidiApplication).container
@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
             val widthSizeClass = calculateWindowSizeClass(this).widthSizeClass
             BluetoothMidiApp(appContainer, widthSizeClass)
         }
-
 
     }
 
