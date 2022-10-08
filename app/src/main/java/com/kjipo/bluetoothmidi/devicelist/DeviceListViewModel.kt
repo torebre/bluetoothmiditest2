@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class DeviceListViewModel(private val deviceScanner: DeviceScanner): ViewModel() {
+
     private val viewModelState = MutableStateFlow(DeviceListViewModelState())
 
     val uiState = viewModelState.map {

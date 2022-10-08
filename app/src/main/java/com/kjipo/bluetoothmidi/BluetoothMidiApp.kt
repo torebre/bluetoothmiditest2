@@ -15,8 +15,10 @@ import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BluetoothMidiApp(appContainer: AppContainer,
-                     widthSizeClass: WindowWidthSizeClass) {
+fun BluetoothMidiApp(
+    appContainer: AppContainer,
+    widthSizeClass: WindowWidthSizeClass
+) {
 
     AppTheme {
         val navController = rememberNavController()
@@ -29,10 +31,11 @@ fun BluetoothMidiApp(appContainer: AppContainer,
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute =
-            navBackStackEntry?.destination?.route ?: NavigationDestinations.DEVICE_LIST
+            navBackStackEntry?.destination?.route ?: NavigationDestinations.HOME.name
 
         ModalNavigationDrawer(drawerContent = {
             NavigationDrawer(
+                currentRoute = currentRoute,
                 navigateToMidiDevices = navigationActions.navigateToDevices,
                 closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
             )
@@ -40,19 +43,17 @@ fun BluetoothMidiApp(appContainer: AppContainer,
             Row {
                 AppNavGraph(appContainer = appContainer,
                     navController = navController,
-                connectToDevice = navigationActions.navigateToConnectScreen,
-                toggleScan = {
-                    runBlocking {
-                        appContainer.deviceScanner.toggleScan()
-                    }
-                })
+                    connectToDevice = navigationActions.navigateToConnectScreen,
+                    toggleScan = {
+                        runBlocking {
+                            appContainer.deviceScanner.toggleScan()
+                        }
+                    })
             }
         }
 
 
-
     }
-
 
 
 }

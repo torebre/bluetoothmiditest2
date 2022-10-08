@@ -13,20 +13,21 @@ import androidx.compose.ui.Modifier
 fun NavigationDrawer(
     navigateToMidiDevices: () -> Unit,
     closeDrawer: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentRoute: String
 ) {
 
     ModalDrawerSheet(modifier) {
 
         NavigationDrawerItem(
             label = { Text("MIDI devices") },
+            selected = currentRoute == NavigationDestinations.DEVICE_LIST.name,
             onClick = { navigateToMidiDevices(); closeDrawer() },
-            selected = true
         )
         NavigationDrawerItem(
             label = { Text("Test2") },
+            selected = false,
             onClick = { closeDrawer() },
-            selected = false
         )
 
     }

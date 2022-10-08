@@ -6,14 +6,14 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.content.Context
 import android.os.ParcelUuid
-import com.kjipo.bluetoothmidi.devicelist.DeviceDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
 import java.util.*
 
-class DeviceScanner {
+class DeviceScanner(private val applicationContext: Context) {
 
     private val scanFilter =
         ScanFilter.Builder().setServiceUuid(ParcelUuid(MIDI_OVER_BTLE_UUID)).build()
@@ -61,6 +61,17 @@ class DeviceScanner {
 
     fun observeDevices(): Flow<Set<BluetoothDeviceData>> = foundDevices
 
+    fun toggleScan() {
+        if (isScanning) {
+            stopScanning()
+        } else {
+            val bluetoothManager =
+                applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            scanLeDevices(bluetoothManager.adapter)
+        }
+        isScanning != isScanning
+    }
+
     inner class BluetoothScanCallback : ScanCallback() {
 
         override fun onScanResult(
@@ -68,8 +79,6 @@ class DeviceScanner {
             result: ScanResult?
         ) {
             Timber.i("Scan result. Callback type: ${callbackType}. Result: $result")
-
-
 
             result?.apply {
                 BluetoothDeviceData(device).let { bluetoothDeviceData ->

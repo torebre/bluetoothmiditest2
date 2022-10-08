@@ -9,7 +9,7 @@ interface AppContainer {
 
 class AppContainerImpl(private val applicationContext: Context): AppContainer {
     override val deviceScanner: DeviceScanner by lazy {
-        DeviceScanner()
+        DeviceScanner(applicationContext)
     }
 
 }
