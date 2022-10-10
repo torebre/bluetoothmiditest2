@@ -39,7 +39,9 @@ fun BluetoothMidiApp(
                 navigateToMidiDevices = navigationActions.navigateToDevices,
                 closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
             )
-        }) {
+        },
+        drawerState = sizeAwareDrawerState,
+        gesturesEnabled = !isExpandedScreen) {
             Row {
                 AppNavGraph(appContainer = appContainer,
                     navController = navController,
