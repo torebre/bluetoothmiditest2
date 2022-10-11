@@ -37,6 +37,7 @@ fun BluetoothMidiApp(
             NavigationDrawer(
                 currentRoute = currentRoute,
                 navigateToMidiDevices = navigationActions.navigateToDevices,
+                navigateToScan = navigationActions.navigateToScan,
                 closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
             )
         },

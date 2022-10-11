@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
 import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
@@ -17,7 +18,8 @@ import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
 enum class NavigationDestinations {
     HOME,
     DEVICE_LIST,
-    CONNECT
+    CONNECT,
+    SCAN2
 //    VIEW_DATA
 }
 
@@ -34,6 +36,16 @@ class NavigationActions(navController: NavHostController) {
             // reselecting the same item
             launchSingleTop = true
             // Restore state when reselecting a previously selected item
+            restoreState = true
+        }
+    }
+
+    val navigateToScan: () -> Unit = {
+        navController.navigate(NavigationDestinations.SCAN2.name) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
             restoreState = true
         }
     }
@@ -75,6 +87,9 @@ fun AppNavGraph(
         composable(NavigationDestinations.CONNECT.name) {
             // TODO
 //            ConnectRoute()
+        }
+        composable(NavigationDestinations.SCAN2.name) {
+            BluetoothConnect(bluetoothPairing = appContainer.bluetoothPairing)
         }
     }
 

@@ -11,6 +11,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 
+/**
+ * https://stackoverflow.com/questions/67891362/componentactivity-vs-appcompactactivity-in-android-jetpack-compose
+ */
 class MainActivity : AppCompatActivity() {
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -18,6 +21,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, true)
         requestPermissions()
+
+
 
         val appContainer = (application as BluetoothMidiApplication).container
         setContent {

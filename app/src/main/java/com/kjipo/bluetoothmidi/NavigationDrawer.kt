@@ -14,23 +14,22 @@ fun NavigationDrawer(
     navigateToMidiDevices: () -> Unit,
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier,
-    currentRoute: String
+    currentRoute: String,
+    navigateToScan: () -> Unit
 ) {
 
     ModalDrawerSheet(modifier) {
-
         NavigationDrawerItem(
             label = { Text("MIDI devices") },
             selected = currentRoute == NavigationDestinations.DEVICE_LIST.name,
             onClick = { navigateToMidiDevices(); closeDrawer() },
         )
         NavigationDrawerItem(
-            label = { Text("Test2") },
-            selected = false,
-            onClick = { closeDrawer() },
+            label = { Text("Scan") },
+            selected = currentRoute == NavigationDestinations.SCAN2.name,
+            onClick = { navigateToScan(); closeDrawer() },
         )
 
     }
-
 
 }
