@@ -17,6 +17,8 @@
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
 
+    <uses-feature android:name="android.software.companion_device_setup"/>
+
     <application
         android:name=".BluetoothMidiApplication"
         android:allowBackup="true"

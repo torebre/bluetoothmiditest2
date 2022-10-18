@@ -23,11 +23,10 @@ class MainActivity : AppCompatActivity() {
         requestPermissions()
 
 
-
         val appContainer = (application as BluetoothMidiApplication).container
         setContent {
             val widthSizeClass = calculateWindowSizeClass(this).widthSizeClass
-            BluetoothMidiApp(appContainer, widthSizeClass)
+            BluetoothMidiApp(appContainer, widthSizeClass, this)
         }
 
     }

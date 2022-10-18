@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.Dp
 @Composable
 fun HomeRoute() {
     Text(
-        text = "Test24",
+        text = "Test",
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()

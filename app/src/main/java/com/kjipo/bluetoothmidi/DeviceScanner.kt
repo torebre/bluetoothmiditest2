@@ -33,7 +33,12 @@ class DeviceScanner(private val applicationContext: Context) {
     private val BluetoothAdapter.isDisabled: Boolean
         get() = !isEnabled
 
-    private lateinit var bluetoothManager: BluetoothManager
+    private var bluetoothManager: BluetoothManager
+
+
+    init {
+        bluetoothManager = applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    }
 
 
     private fun stopScanning() {

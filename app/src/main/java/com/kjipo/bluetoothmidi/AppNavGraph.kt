@@ -1,5 +1,6 @@
 package com.kjipo.bluetoothmidi
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -11,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
+import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
 import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
@@ -69,7 +71,8 @@ fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = NavigationDestinations.HOME.name,
     connectToDevice: (String) -> Unit,
-    toggleScan: () -> Unit
+    toggleScan: () -> Unit,
+    activity: Activity
 ) {
     NavHost(
         navController = navController,
@@ -89,7 +92,8 @@ fun AppNavGraph(
 //            ConnectRoute()
         }
         composable(NavigationDestinations.SCAN2.name) {
-            BluetoothConnect(bluetoothPairing = appContainer.bluetoothPairing)
+//            BluetoothConnect(bluetoothPairing = appContainer.bluetoothPairing)
+            BluetoothConnect(bluetoothPairing = BluetoothPairing(activity))
         }
     }
 

@@ -29,7 +29,6 @@ fun NavigationDrawer(
             selected = currentRoute == NavigationDestinations.SCAN2.name,
             onClick = { navigateToScan(); closeDrawer() },
         )
-
     }
 
 }

@@ -1,5 +1,6 @@
 package com.kjipo.bluetoothmidi
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -17,7 +18,8 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun BluetoothMidiApp(
     appContainer: AppContainer,
-    widthSizeClass: WindowWidthSizeClass
+    widthSizeClass: WindowWidthSizeClass,
+    activity: Activity
 ) {
 
     AppTheme {
@@ -33,25 +35,30 @@ fun BluetoothMidiApp(
         val currentRoute =
             navBackStackEntry?.destination?.route ?: NavigationDestinations.HOME.name
 
-        ModalNavigationDrawer(drawerContent = {
-            NavigationDrawer(
-                currentRoute = currentRoute,
-                navigateToMidiDevices = navigationActions.navigateToDevices,
-                navigateToScan = navigationActions.navigateToScan,
-                closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
-            )
-        },
-        drawerState = sizeAwareDrawerState,
-        gesturesEnabled = !isExpandedScreen) {
+        ModalNavigationDrawer(
+            drawerContent = {
+                NavigationDrawer(
+                    currentRoute = currentRoute,
+                    navigateToMidiDevices = navigationActions.navigateToDevices,
+                    navigateToScan = navigationActions.navigateToScan,
+                    closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
+                )
+            },
+            drawerState = sizeAwareDrawerState,
+            gesturesEnabled = !isExpandedScreen
+        ) {
             Row {
-                AppNavGraph(appContainer = appContainer,
+                AppNavGraph(
+                    appContainer = appContainer,
                     navController = navController,
                     connectToDevice = navigationActions.navigateToConnectScreen,
                     toggleScan = {
                         runBlocking {
                             appContainer.deviceScanner.toggleScan()
                         }
-                    })
+                    },
+                    activity = activity
+                )
             }
         }
 
