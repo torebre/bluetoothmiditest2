@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.kjipo.bluetoothmidi.BluetoothDeviceData
+import timber.log.Timber
 
 
 @Composable
@@ -24,7 +25,6 @@ fun MidiDeviceList(
     }
 
     Column {
-        Text("Test23")
         Row {
             foundDevices.forEach { bluetoothDeviceData ->
                 MidiDeviceEntry(bluetoothDeviceData, selectedDevice)
@@ -32,22 +32,27 @@ fun MidiDeviceList(
         }
         Row {
             Column {
-                ScanButton(onClick = toggleScan, isScanning)
-            }
-            Column {
-                ConnectButton(selectedDevice.value, onClick = {
-                    selectedDevice.value.apply(connect)
-                })
+                ScanButton(
+                    onClick = {
+                        Timber.tag("Bluetooth").i("Scan button pressed")
+                        toggleScan()
+                    },
+                    isScanning
+                )
             }
         }
+        Column {
+            ConnectButton(selectedDevice.value, onClick = {
+                selectedDevice.value.apply(connect)
+            })
+        }
     }
-
 }
 
 
 @Composable
 fun MidiDeviceEntry(midiDevice: BluetoothDeviceData, selectedDevice: MutableState<String>) {
-     LazyRow(Modifier.selectable(midiDevice.bluetoothDevice.address == selectedDevice.value) {
+    LazyRow(Modifier.selectable(midiDevice.bluetoothDevice.address == selectedDevice.value) {
         selectedDevice.value = midiDevice.bluetoothDevice.address
     }) {
         item {
@@ -59,14 +64,14 @@ fun MidiDeviceEntry(midiDevice: BluetoothDeviceData, selectedDevice: MutableStat
 
 @Composable
 fun ScanButton(onClick: () -> Unit, isScanning: Boolean) {
-     Button(onClick) {
+    Button(onClick) {
         Text(if (isScanning) "Stop" else "Scan")
     }
 }
 
 @Composable
 fun ConnectButton(selectedDevice: String, onClick: () -> Unit) {
-     Button(enabled = selectedDevice != "address", onClick = onClick) {
+    Button(enabled = selectedDevice != "address", onClick = onClick) {
         Text("Connect")
     }
 }

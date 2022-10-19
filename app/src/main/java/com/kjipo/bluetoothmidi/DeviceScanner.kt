@@ -55,10 +55,11 @@ class DeviceScanner(private val applicationContext: Context) {
         val leScanner = bluetoothAdapter.bluetoothLeScanner
         isScanning = true
 
-        Timber.i("Start scan")
+        Timber.tag("Bluetooth").i("Start scan")
 
         leScanner.startScan(
-            listOf(scanFilter),
+//            listOf(scanFilter),
+            emptyList<ScanFilter>(),
             ScanSettings.Builder().build(),
             bluetoothScanCallback
         )
@@ -67,6 +68,9 @@ class DeviceScanner(private val applicationContext: Context) {
     fun observeDevices(): Flow<Set<BluetoothDeviceData>> = foundDevices
 
     fun toggleScan() {
+
+        Timber.tag("Bluetooth").i("Old scanning status: $isScanning")
+
         if (isScanning) {
             stopScanning()
         } else {
@@ -83,7 +87,7 @@ class DeviceScanner(private val applicationContext: Context) {
             callbackType: Int,
             result: ScanResult?
         ) {
-            Timber.i("Scan result. Callback type: ${callbackType}. Result: $result")
+            Timber.tag("Bluetooth").i("Scan result. Callback type: ${callbackType}. Result: $result")
 
             result?.apply {
                 BluetoothDeviceData(device).let { bluetoothDeviceData ->
@@ -104,6 +108,10 @@ class DeviceScanner(private val applicationContext: Context) {
                 filterNotNull().forEach {
                     BluetoothDeviceData(it.device).let { bluetoothDeviceData ->
 //                    DeviceDataSource.getDataSource().insertDevice(bluetoothDeviceData)
+
+                        foundDevices.value = foundDevices.value.toMutableSet().apply {
+                            add(bluetoothDeviceData)
+                        }.toSet()
                     }
                 }
             }
@@ -111,7 +119,7 @@ class DeviceScanner(private val applicationContext: Context) {
 
         override fun onScanFailed(errorCode: Int) {
             isScanning = false
-            Timber.e("Scan failed. Error code: $errorCode")
+            Timber.tag("Bluetooth").e("Scan failed. Error code: $errorCode")
         }
     }
 
