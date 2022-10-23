@@ -52,11 +52,6 @@ fun BluetoothMidiApp(
                     appContainer = appContainer,
                     navController = navController,
                     connectToDevice = navigationActions.navigateToConnectScreen,
-                    toggleScan = {
-                        runBlocking {
-                            appContainer.deviceScanner.toggleScan()
-                        }
-                    },
                     activity = activity
                 )
             }

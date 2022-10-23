@@ -19,7 +19,7 @@ class DeviceScanner(private val applicationContext: Context) {
         ScanFilter.Builder().setServiceUuid(ParcelUuid(MIDI_OVER_BTLE_UUID)).build()
 
 
-    private val bluetoothScanCallback = BluetoothScanCallback()
+    private var bluetoothScanCallback: BluetoothScanCallback? = null
 
     private var isScanning = false
 
@@ -33,7 +33,7 @@ class DeviceScanner(private val applicationContext: Context) {
     private val BluetoothAdapter.isDisabled: Boolean
         get() = !isEnabled
 
-    private var bluetoothManager: BluetoothManager
+    private val bluetoothManager: BluetoothManager
 
 
     init {
@@ -43,43 +43,44 @@ class DeviceScanner(private val applicationContext: Context) {
 
     private fun stopScanning() {
         bluetoothManager.adapter.bluetoothLeScanner.stopScan(bluetoothScanCallback)
-        isScanning = false
+        bluetoothScanCallback = null
+
+        Timber.tag("Bluetooth").i("Stopping scanning")
     }
 
 
     private fun scanLeDevices(bluetoothAdapter: BluetoothAdapter) {
-        if (isScanning) {
-            // Already scanning
-            return
-        }
         val leScanner = bluetoothAdapter.bluetoothLeScanner
-        isScanning = true
+        bluetoothScanCallback = BluetoothScanCallback()
 
-        Timber.tag("Bluetooth").i("Start scan")
+        Timber.tag("Bluetooth").i("Start scan: ${isScanning}")
 
         leScanner.startScan(
-//            listOf(scanFilter),
-            emptyList<ScanFilter>(),
-            ScanSettings.Builder().build(),
+            listOf(scanFilter),
+//            emptyList<ScanFilter>(),
+            ScanSettings.Builder().setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES).build(),
             bluetoothScanCallback
         )
+
+        Timber.tag("Bluetooth").i("Enabled: ${bluetoothAdapter.isEnabled}")
     }
 
     fun observeDevices(): Flow<Set<BluetoothDeviceData>> = foundDevices
 
-    fun toggleScan() {
-
+    fun toggleScan(): Boolean {
         Timber.tag("Bluetooth").i("Old scanning status: $isScanning")
 
         if (isScanning) {
             stopScanning()
         } else {
-            val bluetoothManager =
-                applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
             scanLeDevices(bluetoothManager.adapter)
         }
-        isScanning != isScanning
+        isScanning = !isScanning
+
+        return isScanning
     }
+
+    fun scanStatus() = isScanning
 
     inner class BluetoothScanCallback : ScanCallback() {
 
@@ -102,7 +103,7 @@ class DeviceScanner(private val applicationContext: Context) {
         }
 
         override fun onBatchScanResults(results: List<ScanResult?>?) {
-            Timber.i("Scan results. Results: $results")
+            Timber.tag("Bluetooth").i("Scan results. Results: $results")
 
             results?.apply {
                 filterNotNull().forEach {
@@ -124,7 +125,6 @@ class DeviceScanner(private val applicationContext: Context) {
     }
 
     companion object {
-
         private const val SCAN_PERIOD = 10000L
         private val MIDI_OVER_BTLE_UUID = UUID.fromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700")
 

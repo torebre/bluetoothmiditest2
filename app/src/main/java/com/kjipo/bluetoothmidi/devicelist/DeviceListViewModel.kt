@@ -7,8 +7,9 @@ import com.kjipo.bluetoothmidi.BluetoothDeviceData
 import com.kjipo.bluetoothmidi.DeviceScanner
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
-class DeviceListViewModel(private val deviceScanner: DeviceScanner): ViewModel() {
+class DeviceListViewModel(private val deviceScanner: DeviceScanner) : ViewModel() {
 
     private val viewModelState = MutableStateFlow(DeviceListViewModelState())
 
@@ -25,34 +26,47 @@ class DeviceListViewModel(private val deviceScanner: DeviceScanner): ViewModel()
         }
     }
 
+    fun toggleScan() {
+        viewModelScope.launch {
+            // TODO Should these methods only be called inside this coroutinescope?
+            val scanStatus = deviceScanner.toggleScan()
+
+            Timber.tag("Bluetooth").i("Returned from scanning. Scan status: $scanStatus")
+
+            viewModelState.update { it.copy(isScanning = scanStatus) }
+        }
+
+    }
+
 
     companion object {
 
-        fun provideFactory(deviceScanner: DeviceScanner): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return DeviceListViewModel(deviceScanner) as T
+        fun provideFactory(deviceScanner: DeviceScanner): ViewModelProvider.Factory =
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return DeviceListViewModel(deviceScanner) as T
+                }
             }
-        }
 
     }
 
 }
 
 
-class  MidiDevicesUiState(val isScanning: Boolean, val foundDevices: List<BluetoothDeviceData>)
+class MidiDevicesUiState(val isScanning: Boolean, val foundDevices: List<BluetoothDeviceData>)
 
 
-private data class DeviceListViewModelState(val foundDevices: Set<BluetoothDeviceData> = emptySet()) {
-
+private data class DeviceListViewModelState(
+    val isScanning: Boolean = false,
+    val foundDevices: Set<BluetoothDeviceData> = emptySet()
+) {
 
 
     fun toUiState(): MidiDevicesUiState {
-        // TODO Set scanning state correctly
-       return MidiDevicesUiState(false, foundDevices.sortedBy { it.bluetoothDevice.name })
+        return MidiDevicesUiState(isScanning, foundDevices.sortedBy { it.bluetoothDevice.name })
 
     }
-
 
 
 }

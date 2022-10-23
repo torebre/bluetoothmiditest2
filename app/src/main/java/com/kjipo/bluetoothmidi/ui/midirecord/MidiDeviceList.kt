@@ -17,7 +17,8 @@ import timber.log.Timber
 
 @Composable
 fun MidiDeviceList(
-    toggleScan: () -> Unit, isScanning: Boolean,
+    toggleScan: () -> Unit,
+    isScanning: Boolean,
     connect: (String) -> Unit, foundDevices: List<BluetoothDeviceData>
 ) {
     val selectedDevice = remember {

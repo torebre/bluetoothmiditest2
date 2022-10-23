@@ -23,8 +23,7 @@ class BluetoothPairing(private val context: Context) {
 
 
     fun startScan(launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>) {
-        Timber.i("Start scan")
-        Log.i("Bluetooth", "Start scan")
+        Timber.tag("Bluetooth").i("Start scan")
 
         val deviceFilter: BluetoothDeviceFilter = BluetoothDeviceFilter.Builder()
             .addServiceUuid(ParcelUuid(MIDI_OVER_BTLE_UUID), null)

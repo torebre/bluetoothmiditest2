@@ -71,7 +71,6 @@ fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = NavigationDestinations.HOME.name,
     connectToDevice: (String) -> Unit,
-    toggleScan: () -> Unit,
     activity: Activity
 ) {
     NavHost(
@@ -85,7 +84,7 @@ fun AppNavGraph(
         composable(NavigationDestinations.DEVICE_LIST.name) {
             val deviceListModel: DeviceListViewModel =
                 viewModel(factory = DeviceListViewModel.provideFactory(appContainer.deviceScanner))
-            MidiDeviceListRoute(deviceListModel, toggleScan, connectToDevice)
+            MidiDeviceListRoute(deviceListModel, connectToDevice)
         }
         composable(NavigationDestinations.CONNECT.name) {
             // TODO
@@ -103,18 +102,18 @@ fun AppNavGraph(
 @Composable
 fun MidiDeviceListRoute(
     deviceListViewModel: DeviceListViewModel,
-    toggleScan: () -> Unit,
     connect: (String) -> Unit
 ) {
     val uiState by deviceListViewModel.uiState.collectAsState()
 
     MidiDeviceListRoute(
         uiState,
-        toggleScan = toggleScan,
-        connect = connect
-    )
+        toggleScan = {
+            deviceListViewModel.toggleScan() },
+            connect = connect
+            )
+        }
 
-}
 
 @Composable
 fun MidiDeviceListRoute(
