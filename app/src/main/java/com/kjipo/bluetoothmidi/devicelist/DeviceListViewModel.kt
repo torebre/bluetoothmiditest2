@@ -62,11 +62,8 @@ private data class DeviceListViewModelState(
     val foundDevices: Set<BluetoothDeviceData> = emptySet()
 ) {
 
-
     fun toUiState(): MidiDevicesUiState {
-        return MidiDevicesUiState(isScanning, foundDevices.sortedBy { it.bluetoothDevice.name })
-
+        return MidiDevicesUiState(isScanning, foundDevices.sortedBy { it.name })
     }
-
 
 }

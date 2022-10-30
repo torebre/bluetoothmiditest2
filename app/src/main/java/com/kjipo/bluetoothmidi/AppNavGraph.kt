@@ -1,6 +1,12 @@
 package com.kjipo.bluetoothmidi
 
+import android.Manifest
 import android.app.Activity
+import android.os.Build
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.Button
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -8,11 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.google.accompanist.permissions.*
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
+import com.kjipo.bluetoothmidi.connect.ConnectViewModel
 import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
@@ -22,7 +32,6 @@ enum class NavigationDestinations {
     DEVICE_LIST,
     CONNECT,
     SCAN2
-//    VIEW_DATA
 }
 
 class NavigationActions(navController: NavHostController) {
@@ -64,6 +73,7 @@ class NavigationActions(navController: NavHostController) {
 
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AppNavGraph(
     appContainer: AppContainer,
@@ -82,13 +92,22 @@ fun AppNavGraph(
             HomeRoute()
         }
         composable(NavigationDestinations.DEVICE_LIST.name) {
+            val bluetoothPermissionState = if (Build.VERSION.SDK_INT <= 30) {
+                rememberPermissionState(Manifest.permission.BLUETOOTH)
+            } else {
+                rememberPermissionState(Manifest.permission.BLUETOOTH_CONNECT)
+            }
             val deviceListModel: DeviceListViewModel =
                 viewModel(factory = DeviceListViewModel.provideFactory(appContainer.deviceScanner))
-            MidiDeviceListRoute(deviceListModel, connectToDevice)
+            MidiDeviceListRoute(deviceListModel, connectToDevice, bluetoothPermissionState)
         }
-        composable(NavigationDestinations.CONNECT.name) {
-            // TODO
-//            ConnectRoute()
+        composable("${NavigationDestinations.CONNECT.name}/{address}",
+        arguments = listOf(navArgument("address") { type = NavType.StringType})
+        ) { backStackEntry ->
+
+            val address = backStackEntry.arguments?.getString("address")!!
+            val connectViewModel: ConnectViewModel = viewModel(factory = ConnectViewModel.provideFactory(activity.applicationContext, address))
+            ConnectRoute(connectViewModel)
         }
         composable(NavigationDestinations.SCAN2.name) {
 //            BluetoothConnect(bluetoothPairing = appContainer.bluetoothPairing)
@@ -99,33 +118,77 @@ fun AppNavGraph(
 }
 
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MidiDeviceListRoute(
     deviceListViewModel: DeviceListViewModel,
-    connect: (String) -> Unit
+    connect: (String) -> Unit,
+    bluetoothPermissionState: PermissionState
 ) {
     val uiState by deviceListViewModel.uiState.collectAsState()
 
     MidiDeviceListRoute(
         uiState,
         toggleScan = {
-            deviceListViewModel.toggleScan() },
-            connect = connect
-            )
-        }
+            deviceListViewModel.toggleScan()
+        },
+        connect = connect,
+        bluetoothPermissionState
+    )
+}
 
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MidiDeviceListRoute(
     uiState: MidiDevicesUiState, toggleScan: () -> Unit,
-    connect: (String) -> Unit
+    connect: (String) -> Unit,
+    bluetoothPermissionState: PermissionState
 ) {
-    MidiDeviceList(toggleScan, uiState.isScanning, connect, uiState.foundDevices)
+    Column {
+        when (bluetoothPermissionState.status) {
+            is PermissionStatus.Granted -> {
+                Text("Bluetooth connect granted")
+            }
+            is PermissionStatus.Denied -> {
+                Row {
+                    if (bluetoothPermissionState.status.shouldShowRationale) {
+                        Text("Need Bluetooth connect permission")
+                    } else {
+                        Text("Bluetooth connect permission has been denied")
+                    }
+                }
+
+                Row {
+                    Button(onClick = {
+                        bluetoothPermissionState.launchPermissionRequest()
+                    }) {
+                        Text("Request permission")
+                    }
+
+                }
+            }
+        }
+
+        Row {
+            MidiDeviceList(toggleScan, uiState.isScanning, connect, uiState.foundDevices)
+        }
+    }
+
 }
 
 
 @Composable
-fun ConnectRoute() {
-    // TODO
+fun ConnectRoute(connectViewModel: ConnectViewModel) {
+
+    val uiState by connectViewModel.uiState.collectAsState()
+
+    Column {
+        Row {
+            Text("Connected: ${uiState.connected}")
+            Text("Number of received messages: ${uiState.numberOfReceivedMessages}")
+        }
+    }
+
 
 }

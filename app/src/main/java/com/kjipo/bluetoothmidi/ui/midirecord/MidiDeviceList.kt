@@ -2,15 +2,22 @@ package com.kjipo.bluetoothmidi.ui.midirecord
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
 import com.kjipo.bluetoothmidi.BluetoothDeviceData
 import timber.log.Timber
 
@@ -26,10 +33,8 @@ fun MidiDeviceList(
     }
 
     Column {
-        Row {
-            foundDevices.forEach { bluetoothDeviceData ->
-                MidiDeviceEntry(bluetoothDeviceData, selectedDevice)
-            }
+        foundDevices.forEach { bluetoothDeviceData ->
+            MidiDeviceEntry(MidiDeviceEntryInput(bluetoothDeviceData, selectedDevice))
         }
         Row {
             Column {
@@ -41,23 +46,32 @@ fun MidiDeviceList(
                     isScanning
                 )
             }
-        }
-        Column {
-            ConnectButton(selectedDevice.value, onClick = {
-                selectedDevice.value.apply(connect)
-            })
+            Column {
+                ConnectButton(selectedDevice.value, onClick = {
+                    selectedDevice.value.apply(connect)
+                })
+            }
         }
     }
 }
 
 
+class SampleBluetoothDeviceDataProvider: PreviewParameterProvider<MidiDeviceEntryInput> {
+   override val values = sequenceOf(MidiDeviceEntryInput(BluetoothDeviceData("Test device", "12345", 1), mutableStateOf("Test")))
+}
+
+data class MidiDeviceEntryInput(val midiDevice: BluetoothDeviceData,
+                           val selectedDevice: MutableState<String>)
+
+@Preview(showBackground = true)
 @Composable
-fun MidiDeviceEntry(midiDevice: BluetoothDeviceData, selectedDevice: MutableState<String>) {
-    LazyRow(Modifier.selectable(midiDevice.bluetoothDevice.address == selectedDevice.value) {
-        selectedDevice.value = midiDevice.bluetoothDevice.address
+fun MidiDeviceEntry(@PreviewParameter(SampleBluetoothDeviceDataProvider::class) midiDeviceEntryInput: MidiDeviceEntryInput) {
+    LazyRow(Modifier.selectable(midiDeviceEntryInput.midiDevice.address == midiDeviceEntryInput.selectedDevice.value) {
+        midiDeviceEntryInput.selectedDevice.value = midiDeviceEntryInput.midiDevice.address
     }) {
         item {
-            Text(midiDevice.toString())
+            Text(midiDeviceEntryInput.midiDevice.name, textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

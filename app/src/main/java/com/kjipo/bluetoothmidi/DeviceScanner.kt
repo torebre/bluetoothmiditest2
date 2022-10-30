@@ -1,5 +1,6 @@
 package com.kjipo.bluetoothmidi
 
+import android.Manifest.permission.BLUETOOTH_CONNECT
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
@@ -7,7 +8,9 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.ParcelUuid
+import androidx.core.app.ActivityCompat
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
@@ -28,7 +31,7 @@ class DeviceScanner(private val applicationContext: Context) {
 //    }
 
 
-    private val foundDevices = MutableStateFlow<Set<BluetoothDeviceData>>(setOf())
+    private val foundDevices: MutableStateFlow<Set<BluetoothDeviceData>>
 
     private val BluetoothAdapter.isDisabled: Boolean
         get() = !isEnabled
@@ -37,7 +40,30 @@ class DeviceScanner(private val applicationContext: Context) {
 
 
     init {
-        bluetoothManager = applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothManager =
+            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+
+        val bondedDevices =
+            bluetoothManager.adapter.bondedDevices.filter { bondedBluetoothDevice ->
+                Timber.tag("Bluetooth").i("Bluetooth device: ${bondedBluetoothDevice.name}")
+                if (bondedBluetoothDevice.uuids == null) {
+                    Timber.tag("Bluetooth").i("No UUIDs")
+                    true
+                } else {
+                    bondedBluetoothDevice.uuids.firstOrNull {
+                        Timber.tag("Bluetooth").i("ParcelUuid: $it")
+
+                        it.equals(MIDI_OVER_BTLE_UUID)
+                    } != null
+                }
+            }.map {
+                BluetoothDeviceData(
+                    it.name,
+                    it.address,
+                    it.bondState
+                )
+            }.toSet()
+        foundDevices = MutableStateFlow(bondedDevices)
     }
 
 
@@ -55,6 +81,7 @@ class DeviceScanner(private val applicationContext: Context) {
 
         Timber.tag("Bluetooth").i("Start scan: ${isScanning}")
 
+        // TODO Not necessary to callback for all matches
         leScanner.startScan(
             listOf(scanFilter),
 //            emptyList<ScanFilter>(),
@@ -88,17 +115,31 @@ class DeviceScanner(private val applicationContext: Context) {
             callbackType: Int,
             result: ScanResult?
         ) {
-            Timber.tag("Bluetooth").i("Scan result. Callback type: ${callbackType}. Result: $result")
+            Timber.tag("Bluetooth")
+                .i("Scan result. Callback type: ${callbackType}. Result: $result")
 
             result?.apply {
-                BluetoothDeviceData(device).let { bluetoothDeviceData ->
+                if (ActivityCompat.checkSelfPermission(
+                        applicationContext,
+                        BLUETOOTH_CONNECT
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Timber.tag("Bluetooth")
+                        .e("Expected $BLUETOOTH_CONNECT permission to have been given")
+                } else {
+                    BluetoothDeviceData(
+                        device.name,
+                        device.address,
+                        device.bondState
+                    ).let { bluetoothDeviceData ->
 //                    DeviceDataSource.getDataSource().insertDevice(it)
-                    // TODO Need to think about which thread this is done on?
-                    foundDevices.value = foundDevices.value.toMutableSet().apply {
-                        add(bluetoothDeviceData)
-                    }.toSet()
-
+                        // TODO Need to think about which thread this is done on?
+                        foundDevices.value = foundDevices.value.toMutableSet().apply {
+                            add(bluetoothDeviceData)
+                        }.toSet()
+                    }
                 }
+
             }
         }
 
@@ -106,9 +147,12 @@ class DeviceScanner(private val applicationContext: Context) {
             Timber.tag("Bluetooth").i("Scan results. Results: $results")
 
             results?.apply {
-                filterNotNull().forEach {
-                    BluetoothDeviceData(it.device).let { bluetoothDeviceData ->
-//                    DeviceDataSource.getDataSource().insertDevice(bluetoothDeviceData)
+                filterNotNull().forEach { scanResult ->
+                    BluetoothDeviceData(
+                        scanResult.device.name,
+                        scanResult.device.address,
+                        scanResult.device.bondState
+                    ).let { bluetoothDeviceData ->
 
                         foundDevices.value = foundDevices.value.toMutableSet().apply {
                             add(bluetoothDeviceData)

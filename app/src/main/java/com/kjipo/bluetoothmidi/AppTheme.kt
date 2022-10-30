@@ -43,7 +43,6 @@ private val DarkColors = darkColorScheme(
 )
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
