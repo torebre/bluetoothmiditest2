@@ -61,8 +61,6 @@ class BluetoothPairing(private val context: Context) {
                     // Handle the failure.
                     error.toString().let {
                         Timber.tag("Bluetooth").e(it)
-
-                        Log.e("Bluetooth2", it)
                     }
                 }
             }, null

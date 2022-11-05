@@ -1,4 +1,4 @@
-package com.example.bluetoothmiditest
+package com.kjipo.bluetoothmidi.midi
 
 
 enum class CommandType {

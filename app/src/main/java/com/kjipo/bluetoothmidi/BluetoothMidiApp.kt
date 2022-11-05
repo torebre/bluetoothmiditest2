@@ -49,10 +49,11 @@ fun BluetoothMidiApp(
         ) {
             Row {
                 AppNavGraph(
-                    appContainer = appContainer,
                     navController = navController,
                     connectToDevice = navigationActions.navigateToConnectScreen,
-                    activity = activity
+                    activity = activity,
+                    deviceScanner = appContainer.deviceScanner,
+                    midiSessionRepository = appContainer.midiSessionRepository
                 )
             }
         }

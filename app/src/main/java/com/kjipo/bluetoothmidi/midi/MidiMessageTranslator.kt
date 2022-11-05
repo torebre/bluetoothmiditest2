@@ -1,4 +1,4 @@
-package com.example.bluetoothmiditest.midi
+package com.kjipo.bluetoothmidi.midi
 
 import android.media.midi.MidiReceiver
 

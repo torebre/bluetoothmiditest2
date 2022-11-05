@@ -76,12 +76,13 @@ class NavigationActions(navController: NavHostController) {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AppNavGraph(
-    appContainer: AppContainer,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: String = NavigationDestinations.HOME.name,
     connectToDevice: (String) -> Unit,
-    activity: Activity
+    activity: Activity,
+    deviceScanner: DeviceScanner,
+    midiSessionRepository: MidiSessionRepository
 ) {
     NavHost(
         navController = navController,
@@ -98,19 +99,19 @@ fun AppNavGraph(
                 rememberPermissionState(Manifest.permission.BLUETOOTH_CONNECT)
             }
             val deviceListModel: DeviceListViewModel =
-                viewModel(factory = DeviceListViewModel.provideFactory(appContainer.deviceScanner))
+                viewModel(factory = DeviceListViewModel.provideFactory(deviceScanner))
             MidiDeviceListRoute(deviceListModel, connectToDevice, bluetoothPermissionState)
         }
         composable("${NavigationDestinations.CONNECT.name}/{address}",
         arguments = listOf(navArgument("address") { type = NavType.StringType})
         ) { backStackEntry ->
 
+
             val address = backStackEntry.arguments?.getString("address")!!
-            val connectViewModel: ConnectViewModel = viewModel(factory = ConnectViewModel.provideFactory(activity.applicationContext, address))
+            val connectViewModel: ConnectViewModel = viewModel(factory = ConnectViewModel.provideFactory(activity.applicationContext, address, midiSessionRepository))
             ConnectRoute(connectViewModel)
         }
         composable(NavigationDestinations.SCAN2.name) {
-//            BluetoothConnect(bluetoothPairing = appContainer.bluetoothPairing)
             BluetoothConnect(bluetoothPairing = BluetoothPairing(activity))
         }
     }

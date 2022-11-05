@@ -1,4 +1,4 @@
-package com.example.bluetoothmiditest.midi
+package com.kjipo.bluetoothmidi.midi
 
 /*
  * This class is based on MidiConstants in the android-midisuite project

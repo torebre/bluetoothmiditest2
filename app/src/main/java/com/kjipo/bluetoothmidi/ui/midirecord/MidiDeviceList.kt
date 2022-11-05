@@ -2,7 +2,6 @@ package com.kjipo.bluetoothmidi.ui.midirecord
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.Button
@@ -17,7 +16,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.dp
 import com.kjipo.bluetoothmidi.BluetoothDeviceData
 import timber.log.Timber
 
@@ -26,7 +24,8 @@ import timber.log.Timber
 fun MidiDeviceList(
     toggleScan: () -> Unit,
     isScanning: Boolean,
-    connect: (String) -> Unit, foundDevices: List<BluetoothDeviceData>
+    connect: (String) -> Unit,
+    foundDevices: List<BluetoothDeviceData>
 ) {
     val selectedDevice = remember {
         mutableStateOf("address")
@@ -56,12 +55,19 @@ fun MidiDeviceList(
 }
 
 
-class SampleBluetoothDeviceDataProvider: PreviewParameterProvider<MidiDeviceEntryInput> {
-   override val values = sequenceOf(MidiDeviceEntryInput(BluetoothDeviceData("Test device", "12345", 1), mutableStateOf("Test")))
+class SampleBluetoothDeviceDataProvider : PreviewParameterProvider<MidiDeviceEntryInput> {
+    override val values = sequenceOf(
+        MidiDeviceEntryInput(
+            BluetoothDeviceData("Test device", "12345", 1),
+            mutableStateOf("Test")
+        )
+    )
 }
 
-data class MidiDeviceEntryInput(val midiDevice: BluetoothDeviceData,
-                           val selectedDevice: MutableState<String>)
+data class MidiDeviceEntryInput(
+    val midiDevice: BluetoothDeviceData,
+    val selectedDevice: MutableState<String>
+)
 
 @Preview(showBackground = true)
 @Composable
@@ -70,8 +76,10 @@ fun MidiDeviceEntry(@PreviewParameter(SampleBluetoothDeviceDataProvider::class) 
         midiDeviceEntryInput.selectedDevice.value = midiDeviceEntryInput.midiDevice.address
     }) {
         item {
-            Text(midiDeviceEntryInput.midiDevice.name, textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge)
+            Text(
+                midiDeviceEntryInput.midiDevice.name, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }
