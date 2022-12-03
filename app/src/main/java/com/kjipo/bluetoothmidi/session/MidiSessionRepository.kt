@@ -1,4 +1,4 @@
-package com.kjipo.bluetoothmidi
+package com.kjipo.bluetoothmidi.session
 
 interface MidiSessionRepository {
 

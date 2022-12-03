@@ -7,7 +7,7 @@ import android.media.midi.MidiReceiver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.kjipo.bluetoothmidi.MidiSessionRepository
+import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.midi.MidiMessageHandler
 import com.kjipo.bluetoothmidi.midi.MidiMessageTranslator
 import com.kjipo.bluetoothmidi.midi.translateMidiMessage

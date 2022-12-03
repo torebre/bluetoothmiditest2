@@ -2,6 +2,8 @@ package com.kjipo.bluetoothmidi
 
 import android.content.Context
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
+import com.kjipo.bluetoothmidi.session.MidiSessionRepository
+import com.kjipo.bluetoothmidi.session.MidiSessionRepositoryImpl
 
 interface AppContainer {
     val deviceScanner: DeviceScanner
