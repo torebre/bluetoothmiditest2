@@ -4,4 +4,6 @@ interface MidiSessionRepository {
 
     fun addMessageToSession()
 
+    fun closeSession()
+
 }

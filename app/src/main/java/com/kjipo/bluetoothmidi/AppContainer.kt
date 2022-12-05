@@ -11,6 +11,7 @@ interface AppContainer {
     val bluetoothPairing: BluetoothPairing
 
     val midiSessionRepository: MidiSessionRepository
+
 }
 
 
@@ -24,7 +25,7 @@ class AppContainerImpl(private val applicationContext: Context) : AppContainer {
     }
 
     override val midiSessionRepository: MidiSessionRepository by lazy {
-        MidiSessionRepositoryImpl()
+        MidiSessionRepositoryImpl(applicationContext)
     }
 
 }
