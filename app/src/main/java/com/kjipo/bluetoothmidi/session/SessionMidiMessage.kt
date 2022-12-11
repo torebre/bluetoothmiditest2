@@ -1,13 +1,19 @@
 package com.kjipo.bluetoothmidi.session
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
 class SessionMidiMessage(
     @PrimaryKey(autoGenerate = true) var id: Int = 0,
-    val midiCommand: Int?,
-    val midiData: String?,
-    val channel: Int?,
-    val timestamp: Long?
-)
+    @ColumnInfo(name = "sessionid") val sessionId: Int? = null,
+    @ColumnInfo(name = "midicommand") val midiCommand: Int? = null,
+    @ColumnInfo(name = "mididata") val midiData: String? = null,
+    @ColumnInfo(name = "channel") val channel: Int? = null,
+    @ColumnInfo(name = "timestamp") val timestamp: Long? = null
+) {
+    override fun toString(): String {
+        return "SessionMidiMessage(id=$id, sessionId=$sessionId, midiCommand=$midiCommand, midiData=$midiData, channel=$channel, timestamp=$timestamp)"
+    }
+}
