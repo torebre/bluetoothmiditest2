@@ -9,5 +9,5 @@ data class SessionWithMessages(
         parentColumn = "id",
         entityColumn = "session_id"
     )
-    val midiMessages: List<MidiMessage>
+    val sessionMidiMessages: List<SessionMidiMessage>
 )

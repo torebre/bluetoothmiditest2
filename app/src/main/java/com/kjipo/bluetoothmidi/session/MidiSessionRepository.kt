@@ -1,8 +1,12 @@
 package com.kjipo.bluetoothmidi.session
 
+import com.kjipo.bluetoothmidi.midi.MidiMessage
+
 interface MidiSessionRepository {
 
-    fun addMessageToSession()
+    fun startSession()
+
+    suspend fun addMessageToSession(translatedMidiMessage: MidiMessage)
 
     fun closeSession()
 

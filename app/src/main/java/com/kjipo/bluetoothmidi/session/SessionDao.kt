@@ -7,15 +7,18 @@ import androidx.room.*
 interface SessionDao {
 
     @Insert
-    fun insertSession(session: Session)
+    suspend fun insertSession(session: Session)
 
     @Update
-    fun updateSession(session: Session)
+    suspend fun updateSession(session: Session)
 
     @Delete
-    fun deleteSession(session: Session)
+    suspend fun deleteSession(session: Session)
 
     @Query("SELECT * FROM session")
-    fun getAllSessions(): List<Session>
+    suspend fun getAllSessions(): List<Session>
+
+    @Insert
+    suspend fun addMidiMessage(sessionMidiMessage: SessionMidiMessage)
 
 }

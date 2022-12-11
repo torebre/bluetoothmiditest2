@@ -105,6 +105,9 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
+//    implementation "androidx.core:core-ktx:1.9.0"
+    implementation "androidx.room:room-ktx:$room_version"
+
     // Need kapt to make room work
     // To use Kotlin annotation processing tool (kapt)
     kapt "androidx.room:room-compiler:$room_version"

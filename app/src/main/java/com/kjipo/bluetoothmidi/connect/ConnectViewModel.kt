@@ -35,6 +35,7 @@ class ConnectViewModel(
         val bluetoothManager =
             applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
+        // TODO Should this use a lifecycle-scope instead?
         viewModelScope.launch {
             val deviceToOpen =
                 bluetoothManager.adapter.bondedDevices.firstOrNull { it.address == address }
@@ -78,8 +79,11 @@ class ConnectViewModel(
                 viewModelState.update { it.copy(deviceNotFound = true) }
             }
         }
+    }
 
 
+    fun closeSession() {
+        midiSessionRepository.closeSession()
     }
 
     private fun getMidiReceiver(midiMessageTranslator: MidiMessageTranslator): MidiReceiver {
@@ -96,7 +100,6 @@ class ConnectViewModel(
                 msg?.let { messageBytes ->
                     Timber.d("Offset: $offset. Count: $count. Timestamp: $timestamp. Bytes in message: ${messageBytes.joinToString { messageBytes.toString() }}")
                     midiMessageTranslator.onSend(msg, offset, count, timestamp)
-                    midiSessionRepository.addMessageToSession()
                 }
 
                 viewModelState.update {
@@ -109,7 +112,10 @@ class ConnectViewModel(
     private fun getMidiMessageTranslator(): MidiMessageTranslator {
         return MidiMessageTranslator(object : MidiMessageHandler {
             override fun send(msg: UByteArray, offset: Int, count: Int, timestamp: Long) {
-                translateMidiMessage(msg, offset, timestamp)
+                val translatedMidiMessage = translateMidiMessage(msg, offset, timestamp)
+                viewModelScope.launch {
+                    midiSessionRepository.addMessageToSession(translatedMidiMessage)
+                }
             }
 
             override fun close() {

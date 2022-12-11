@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -23,6 +26,7 @@ import com.google.accompanist.permissions.*
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
 import com.kjipo.bluetoothmidi.connect.ConnectViewModel
+import com.kjipo.bluetoothmidi.connect.MidiDeviceConnectUiState
 import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
@@ -103,13 +107,18 @@ fun AppNavGraph(
                 viewModel(factory = DeviceListViewModel.provideFactory(deviceScanner))
             MidiDeviceListRoute(deviceListModel, connectToDevice, bluetoothPermissionState)
         }
-        composable("${NavigationDestinations.CONNECT.name}/{address}",
-        arguments = listOf(navArgument("address") { type = NavType.StringType})
+        composable(
+            "${NavigationDestinations.CONNECT.name}/{address}",
+            arguments = listOf(navArgument("address") { type = NavType.StringType })
         ) { backStackEntry ->
-
-
             val address = backStackEntry.arguments?.getString("address")!!
-            val connectViewModel: ConnectViewModel = viewModel(factory = ConnectViewModel.provideFactory(activity.applicationContext, address, midiSessionRepository))
+            val connectViewModel: ConnectViewModel = viewModel(
+                factory = ConnectViewModel.provideFactory(
+                    activity.applicationContext,
+                    address,
+                    midiSessionRepository
+                )
+            )
             ConnectRoute(connectViewModel)
         }
         composable(NavigationDestinations.SCAN2.name) {
@@ -179,18 +188,58 @@ fun MidiDeviceListRoute(
 
 }
 
-
 @Composable
 fun ConnectRoute(connectViewModel: ConnectViewModel) {
-
     val uiState by connectViewModel.uiState.collectAsState()
+
+    ConnectRoute(
+        ConnectRouteInputHolder(
+            { connectViewModel.closeSession() },
+            midiDeviceConnectUiState = uiState
+        )
+    )
+
+}
+
+class ConnectRouteInputHolder(
+    val saveSessionCallback: () -> Unit,
+    val midiDeviceConnectUiState: MidiDeviceConnectUiState
+)
+
+
+class ConnectRouteInputHolderProvider : PreviewParameterProvider<ConnectRouteInputHolder> {
+    override val values = sequenceOf(
+        ConnectRouteInputHolder(
+            {
+                // Do nothing
+            },
+            MidiDeviceConnectUiState(
+                "",
+                false,
+                0,
+                false
+            )
+        )
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ConnectRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) connectRouteInputHolder: ConnectRouteInputHolder) {
 
     Column {
         Row {
-            Text("Connected: ${uiState.connected}")
-            Text("Number of received messages: ${uiState.numberOfReceivedMessages}")
+            Text("Connected: ${connectRouteInputHolder.midiDeviceConnectUiState.connected}")
+        }
+        Row {
+            Text("Number of received messages: ${connectRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
+        }
+        Row {
+            Button(onClick = connectRouteInputHolder.saveSessionCallback) {
+                Text("Close session")
+
+            }
         }
     }
-
 
 }
