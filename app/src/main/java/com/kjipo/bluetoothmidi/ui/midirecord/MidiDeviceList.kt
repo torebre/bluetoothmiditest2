@@ -96,13 +96,14 @@ data class MidiDeviceEntryInput(
 @Preview(showBackground = true)
 @Composable
 fun MidiDeviceEntry(@PreviewParameter(SampleBluetoothDeviceDataProvider::class) midiDeviceEntryInput: MidiDeviceEntryInput) {
-    LazyRow(Modifier.selectable(midiDeviceEntryInput.midiDevice.address == midiDeviceEntryInput.selectedDevice.value) {
+    LazyRow(Modifier.fillMaxWidth()
+        .selectable(midiDeviceEntryInput.midiDevice.address == midiDeviceEntryInput.selectedDevice.value) {
         midiDeviceEntryInput.selectedDevice.value = midiDeviceEntryInput.midiDevice.address
     }) {
         item {
             Text(
                 midiDeviceEntryInput.midiDevice.name, textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.displayMedium
+                style = MaterialTheme.typography.displaySmall
             )
         }
     }

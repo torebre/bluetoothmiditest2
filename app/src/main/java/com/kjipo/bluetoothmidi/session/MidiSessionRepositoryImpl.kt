@@ -8,15 +8,14 @@ import java.time.Instant.now
 class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
     MidiSessionRepository {
 
+    private var currentSession: Session? = null
+
     constructor(applicationContext: Context) : this(
         Room.databaseBuilder(applicationContext, SessionDatabase::class.java, "session-database")
             .build()
     )
 
-    private var currentSession: Session? = null
-
-
-    override fun startSession(): Int {
+    override suspend fun startSession(): Int {
         return startNewSession().uid
     }
 
@@ -43,18 +42,18 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
         return sessionDatabase.sessionDao().getAllMidiMessagesForSession(sessionId)
     }
 
-    override fun closeSession() {
-
+    override suspend fun closeSession() {
         currentSession?.let {
             sessionDatabase
             it.sessionEnd = now()
+            sessionDatabase.sessionDao().updateSession(it)
         }
-
     }
 
-    private fun startNewSession(): Session {
+    private suspend fun startNewSession(): Session {
         return Session(start = now()).let {
             currentSession = it
+            sessionDatabase.sessionDao().insertSession(it)
             it
         }
     }

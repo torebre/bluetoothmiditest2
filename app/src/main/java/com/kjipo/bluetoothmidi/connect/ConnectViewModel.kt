@@ -83,7 +83,10 @@ class ConnectViewModel(
 
 
     fun closeSession() {
-        midiSessionRepository.closeSession()
+        // TODO Is this the correct scope to use?
+        viewModelScope.launch {
+            midiSessionRepository.closeSession()
+        }
     }
 
     private fun getMidiReceiver(midiMessageTranslator: MidiMessageTranslator): MidiReceiver {

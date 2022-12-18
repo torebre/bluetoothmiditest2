@@ -9,5 +9,5 @@ import java.time.Instant
 data class Session(
     @PrimaryKey(autoGenerate = true) var uid: Int = 0,
     @ColumnInfo(name = "start") val start: Instant,
-    @ColumnInfo(name = "stop") val sessionEnd: Instant? = null
+    @ColumnInfo(name = "stop") var sessionEnd: Instant? = null
 )

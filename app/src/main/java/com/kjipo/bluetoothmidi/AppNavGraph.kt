@@ -3,8 +3,10 @@ package com.kjipo.bluetoothmidi
 import android.Manifest
 import android.app.Activity
 import android.os.Build
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -235,7 +237,7 @@ fun ConnectRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) conne
         Row {
             Text("Number of received messages: ${connectRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
         }
-        Row {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             Button(onClick = connectRouteInputHolder.saveSessionCallback) {
                 Text("Close session")
 
