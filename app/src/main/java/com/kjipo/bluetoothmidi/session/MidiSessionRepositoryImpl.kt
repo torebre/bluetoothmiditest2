@@ -44,7 +44,12 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
     }
 
     override fun closeSession() {
-        TODO("Not yet implemented")
+
+        currentSession?.let {
+            sessionDatabase
+            it.sessionEnd = now()
+        }
+
     }
 
     private fun startNewSession(): Session {

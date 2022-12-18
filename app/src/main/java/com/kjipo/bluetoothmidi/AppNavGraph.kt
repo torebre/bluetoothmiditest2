@@ -31,6 +31,7 @@ import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
+import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceListInput
 
 enum class NavigationDestinations {
     HOME,
@@ -182,7 +183,7 @@ fun MidiDeviceListRoute(
         }
 
         Row {
-            MidiDeviceList(toggleScan, uiState.isScanning, connect, uiState.foundDevices)
+            MidiDeviceList(MidiDeviceListInput(toggleScan, uiState.isScanning, connect, uiState.foundDevices))
         }
     }
 

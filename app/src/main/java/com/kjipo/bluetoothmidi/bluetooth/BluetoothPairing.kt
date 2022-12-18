@@ -6,7 +6,6 @@ import android.companion.CompanionDeviceManager
 import android.content.Context
 import android.content.IntentSender
 import android.os.ParcelUuid
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
