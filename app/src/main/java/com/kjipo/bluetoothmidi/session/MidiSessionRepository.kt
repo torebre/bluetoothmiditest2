@@ -12,4 +12,6 @@ interface MidiSessionRepository {
 
     suspend fun closeSession()
 
+    suspend fun getStoredSessions(): List<Session>
+
 }

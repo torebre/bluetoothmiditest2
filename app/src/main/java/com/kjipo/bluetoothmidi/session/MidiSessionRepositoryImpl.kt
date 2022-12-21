@@ -58,4 +58,9 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
         }
     }
 
+    override suspend fun getStoredSessions(): List<Session> {
+        return sessionDatabase.sessionDao().getAllSessions().filter { it.sessionEnd != null }
+    }
+
+
 }

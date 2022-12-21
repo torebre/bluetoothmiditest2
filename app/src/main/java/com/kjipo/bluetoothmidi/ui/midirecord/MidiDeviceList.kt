@@ -6,10 +6,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,7 +21,8 @@ class MidiDeviceListInput(
     val toggleScan: () -> Unit,
     val isScanning: Boolean,
     val connect: (String) -> Unit,
-    val foundDevices: List<BluetoothDeviceData>
+    val foundDevices: List<BluetoothDeviceData>,
+    val selectedDevice: MutableState<String>
 )
 
 class MidiDeviceListDataProvider : PreviewParameterProvider<MidiDeviceListInput> {
@@ -39,12 +37,13 @@ class MidiDeviceListDataProvider : PreviewParameterProvider<MidiDeviceListInput>
                 // Do nothing
             },
             listOf(
-                BluetoothDeviceData("Test device", "12345", 1),
-                BluetoothDeviceData("Test device 2", "12345", 1),
-                BluetoothDeviceData("Test device 3", "12345", 1),
-                BluetoothDeviceData("Test device 4", "12345", 1),
-                BluetoothDeviceData("Test device 5", "12345", 1)
-            )
+                BluetoothDeviceData("Test device", "1", 1),
+                BluetoothDeviceData("Test device 2", "2", 1),
+                BluetoothDeviceData("Test device 3", "3", 1),
+                BluetoothDeviceData("Test device 4", "4", 1),
+                BluetoothDeviceData("Test device 5", "5", 1)
+            ),
+           mutableStateOf("2")
         )
     )
 
@@ -53,13 +52,10 @@ class MidiDeviceListDataProvider : PreviewParameterProvider<MidiDeviceListInput>
 @Preview
 @Composable
 fun MidiDeviceList(@PreviewParameter(MidiDeviceListDataProvider::class) midiDeviceListInput: MidiDeviceListInput) {
-    val selectedDevice = remember {
-        mutableStateOf("address")
-    }
 
     Column {
         midiDeviceListInput.foundDevices.forEach { bluetoothDeviceData ->
-            MidiDeviceEntry(MidiDeviceEntryInput(bluetoothDeviceData, selectedDevice))
+            MidiDeviceEntry(MidiDeviceEntryInput(bluetoothDeviceData, midiDeviceListInput.selectedDevice))
         }
         Row(Modifier.fillMaxWidth()
             .padding(Dp(5.0f), Dp(5.0f))
@@ -71,8 +67,8 @@ fun MidiDeviceList(@PreviewParameter(MidiDeviceListDataProvider::class) midiDevi
                 },
                 midiDeviceListInput.isScanning
             )
-            ConnectButton(selectedDevice.value, onClick = {
-                selectedDevice.value.apply(midiDeviceListInput.connect)
+            ConnectButton(midiDeviceListInput.selectedDevice.value, onClick = {
+                midiDeviceListInput.selectedDevice.value.apply(midiDeviceListInput.connect)
             })
         }
     }
@@ -97,9 +93,8 @@ data class MidiDeviceEntryInput(
 @Composable
 fun MidiDeviceEntry(@PreviewParameter(SampleBluetoothDeviceDataProvider::class) midiDeviceEntryInput: MidiDeviceEntryInput) {
     LazyRow(Modifier.fillMaxWidth()
-        .selectable(midiDeviceEntryInput.midiDevice.address == midiDeviceEntryInput.selectedDevice.value) {
-        midiDeviceEntryInput.selectedDevice.value = midiDeviceEntryInput.midiDevice.address
-    }) {
+        .selectable(selected = midiDeviceEntryInput.midiDevice.address == midiDeviceEntryInput.selectedDevice.value,
+        onClick = { midiDeviceEntryInput.selectedDevice.value = midiDeviceEntryInput.midiDevice.address})) {
         item {
             Text(
                 midiDeviceEntryInput.midiDevice.name, textAlign = TextAlign.Center,

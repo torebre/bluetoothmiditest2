@@ -3,19 +3,12 @@ package com.kjipo.bluetoothmidi
 import android.Manifest
 import android.app.Activity
 import android.os.Build
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -28,18 +21,19 @@ import com.google.accompanist.permissions.*
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
 import com.kjipo.bluetoothmidi.connect.ConnectViewModel
-import com.kjipo.bluetoothmidi.connect.MidiDeviceConnectUiState
 import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
 import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceListInput
+import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUi
 
 enum class NavigationDestinations {
     HOME,
     DEVICE_LIST,
     CONNECT,
-    SCAN2
+    SCAN2,
+    MIDI_SESSION_LIST
 }
 
 class NavigationActions(navController: NavHostController) {
@@ -127,6 +121,12 @@ fun AppNavGraph(
         composable(NavigationDestinations.SCAN2.name) {
             BluetoothConnect(bluetoothPairing = BluetoothPairing(activity))
         }
+        composable(
+            NavigationDestinations.MIDI_SESSION_LIST.name
+        ) {
+            val sessionViewModel: MidiSessionViewModel = viewModel(factory = MidiSessionViewModel.provideFactory(midiSessionRepository))
+            MidiSessionUi(midiSessionUiInputData = sessionViewModel.uiState)
+        }
     }
 
 }
@@ -159,6 +159,10 @@ fun MidiDeviceListRoute(
     connect: (String) -> Unit,
     bluetoothPermissionState: PermissionState
 ) {
+    val selectedDevice = remember {
+        mutableStateOf("address")
+    }
+
     Column {
         when (bluetoothPermissionState.status) {
             is PermissionStatus.Granted -> {
@@ -185,63 +189,7 @@ fun MidiDeviceListRoute(
         }
 
         Row {
-            MidiDeviceList(MidiDeviceListInput(toggleScan, uiState.isScanning, connect, uiState.foundDevices))
-        }
-    }
-
-}
-
-@Composable
-fun ConnectRoute(connectViewModel: ConnectViewModel) {
-    val uiState by connectViewModel.uiState.collectAsState()
-
-    ConnectRoute(
-        ConnectRouteInputHolder(
-            { connectViewModel.closeSession() },
-            midiDeviceConnectUiState = uiState
-        )
-    )
-
-}
-
-class ConnectRouteInputHolder(
-    val saveSessionCallback: () -> Unit,
-    val midiDeviceConnectUiState: MidiDeviceConnectUiState
-)
-
-
-class ConnectRouteInputHolderProvider : PreviewParameterProvider<ConnectRouteInputHolder> {
-    override val values = sequenceOf(
-        ConnectRouteInputHolder(
-            {
-                // Do nothing
-            },
-            MidiDeviceConnectUiState(
-                "",
-                false,
-                0,
-                false
-            )
-        )
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ConnectRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) connectRouteInputHolder: ConnectRouteInputHolder) {
-
-    Column {
-        Row {
-            Text("Connected: ${connectRouteInputHolder.midiDeviceConnectUiState.connected}")
-        }
-        Row {
-            Text("Number of received messages: ${connectRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            Button(onClick = connectRouteInputHolder.saveSessionCallback) {
-                Text("Close session")
-
-            }
+            MidiDeviceList(MidiDeviceListInput(toggleScan, uiState.isScanning, connect, uiState.foundDevices, selectedDevice))
         }
     }
 
