@@ -17,12 +17,15 @@ import com.kjipo.bluetoothmidi.connect.ConnectViewModel
 import com.kjipo.bluetoothmidi.connect.MidiDeviceConnectUiState
 
 @Composable
-fun ConnectRoute(connectViewModel: ConnectViewModel) {
+fun ConnectRoute(connectViewModel: ConnectViewModel, navigateToHome: () -> Unit) {
     val uiState by connectViewModel.uiState.collectAsState()
 
     ConnectRoute(
         ConnectRouteInputHolder(
-            { connectViewModel.closeSession() },
+            {
+                connectViewModel.closeSession()
+                navigateToHome()
+            },
             midiDeviceConnectUiState = uiState
         )
     )

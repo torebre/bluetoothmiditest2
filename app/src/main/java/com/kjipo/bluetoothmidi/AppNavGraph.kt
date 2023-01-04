@@ -37,6 +37,16 @@ enum class NavigationDestinations {
 }
 
 class NavigationActions(navController: NavHostController) {
+    val navigateToHome: () -> Unit = {
+       navController.navigate(NavigationDestinations.HOME.name) {
+           popUpTo(navController.graph.findStartDestination().id) {
+               saveState = true
+           }
+           launchSingleTop = true
+           restoreState = true
+       }
+    }
+
     val navigateToDevices: () -> Unit = {
         navController.navigate(NavigationDestinations.DEVICE_LIST.name) {
             // Pop up to the start destination of the graph to
@@ -82,6 +92,7 @@ fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = NavigationDestinations.HOME.name,
     connectToDevice: (String) -> Unit,
+    navigateToHome: () -> Unit,
     activity: Activity,
     deviceScanner: DeviceScanner,
     midiSessionRepository: MidiSessionRepository
@@ -116,7 +127,9 @@ fun AppNavGraph(
                     midiSessionRepository
                 )
             )
-            ConnectRoute(connectViewModel)
+            ConnectRoute(connectViewModel) {
+                navigateToHome()
+            }
         }
         composable(NavigationDestinations.SCAN2.name) {
             BluetoothConnect(bluetoothPairing = BluetoothPairing(activity))

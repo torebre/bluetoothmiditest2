@@ -51,6 +51,7 @@ fun BluetoothMidiApp(
                 AppNavGraph(
                     navController = navController,
                     connectToDevice = navigationActions.navigateToConnectScreen,
+                    navigateToHome = navigationActions.navigateToHome,
                     activity = activity,
                     deviceScanner = appContainer.deviceScanner,
                     midiSessionRepository = appContainer.midiSessionRepository
