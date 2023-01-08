@@ -11,7 +11,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,8 +39,11 @@ fun BluetoothMidiApp(
                 NavigationDrawer(
                     currentRoute = currentRoute,
                     navigateToMidiDevices = navigationActions.navigateToDevices,
+                    navigateToMidiRecord = navigationActions.navigateToMidiRecord,
+                    navigateToMidiPlay = navigationActions.navigateToMidiPlay,
                     navigateToScan = navigationActions.navigateToScan,
-                    closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } }
+                    closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } },
+                    navigateToSessionList = navigationActions.navigateToSessionList
                 )
             },
             drawerState = sizeAwareDrawerState,
@@ -50,10 +52,10 @@ fun BluetoothMidiApp(
             Row {
                 AppNavGraph(
                     navController = navController,
-                    connectToDevice = navigationActions.navigateToConnectScreen,
                     navigateToHome = navigationActions.navigateToHome,
                     activity = activity,
                     deviceScanner = appContainer.deviceScanner,
+                    midiHandler = appContainer.midiHandler,
                     midiSessionRepository = appContainer.midiSessionRepository
                 )
             }

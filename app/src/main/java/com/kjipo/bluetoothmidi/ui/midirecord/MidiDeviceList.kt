@@ -22,7 +22,8 @@ class MidiDeviceListInput(
     val isScanning: Boolean,
     val connect: (String) -> Unit,
     val foundDevices: List<BluetoothDeviceData>,
-    val selectedDevice: MutableState<String>
+    val selectedDevice: MutableState<String>,
+    val connectedDeviceAddress: String?
 )
 
 class MidiDeviceListDataProvider : PreviewParameterProvider<MidiDeviceListInput> {
@@ -43,7 +44,8 @@ class MidiDeviceListDataProvider : PreviewParameterProvider<MidiDeviceListInput>
                 BluetoothDeviceData("Test device 4", "4", 1),
                 BluetoothDeviceData("Test device 5", "5", 1)
             ),
-           mutableStateOf("2")
+            mutableStateOf("2"),
+            connectedDeviceAddress = null
         )
     )
 
@@ -55,11 +57,28 @@ fun MidiDeviceList(@PreviewParameter(MidiDeviceListDataProvider::class) midiDevi
 
     Column {
         midiDeviceListInput.foundDevices.forEach { bluetoothDeviceData ->
-            MidiDeviceEntry(MidiDeviceEntryInput(bluetoothDeviceData, midiDeviceListInput.selectedDevice))
+            MidiDeviceEntry(
+                MidiDeviceEntryInput(
+                    bluetoothDeviceData,
+                    midiDeviceListInput.selectedDevice
+                )
+            )
         }
-        Row(Modifier.fillMaxWidth()
-            .padding(Dp(5.0f), Dp(5.0f))
-            , horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(Modifier.fillMaxWidth()) {
+            Text(text = midiDeviceListInput.connectedDeviceAddress.let {
+                if (it == null) {
+                    "No device connected"
+                } else {
+                    midiDeviceListInput.foundDevices.filter { it.address == midiDeviceListInput.connectedDeviceAddress }
+                        .first().name
+                }
+            })
+        }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(Dp(5.0f), Dp(5.0f)), horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             ScanButton(
                 onClick = {
                     Timber.tag("Bluetooth").i("Scan button pressed")
@@ -92,12 +111,19 @@ data class MidiDeviceEntryInput(
 @Preview(showBackground = true)
 @Composable
 fun MidiDeviceEntry(@PreviewParameter(SampleBluetoothDeviceDataProvider::class) midiDeviceEntryInput: MidiDeviceEntryInput) {
-    LazyRow(Modifier.fillMaxWidth()
-        .selectable(selected = midiDeviceEntryInput.midiDevice.address == midiDeviceEntryInput.selectedDevice.value,
-        onClick = { midiDeviceEntryInput.selectedDevice.value = midiDeviceEntryInput.midiDevice.address})) {
+    LazyRow(
+        Modifier
+            .fillMaxWidth()
+            .selectable(selected = midiDeviceEntryInput.midiDevice.address == midiDeviceEntryInput.selectedDevice.value,
+                onClick = {
+                    midiDeviceEntryInput.selectedDevice.value =
+                        midiDeviceEntryInput.midiDevice.address
+                })
+    ) {
         item {
             Text(
-                midiDeviceEntryInput.midiDevice.name, textAlign = TextAlign.Center,
+                midiDeviceEntryInput.midiDevice.name,
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.displaySmall
             )
         }
@@ -109,7 +135,8 @@ fun MidiDeviceEntry(@PreviewParameter(SampleBluetoothDeviceDataProvider::class) 
 fun ScanButton(onClick: () -> Unit, isScanning: Boolean) {
     Button(onClick) {
         Text(
-            if (isScanning) "Stop" else "Scan")
+            if (isScanning) "Stop" else "Scan"
+        )
     }
 }
 

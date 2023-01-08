@@ -12,10 +12,13 @@ import androidx.compose.ui.Modifier
 @Composable
 fun NavigationDrawer(
     navigateToMidiDevices: () -> Unit,
+    navigateToMidiRecord: () -> Unit,
+    navigateToMidiPlay: () -> Unit,
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier,
     currentRoute: String,
-    navigateToScan: () -> Unit
+    navigateToScan: () -> Unit,
+    navigateToSessionList: () -> Unit
 ) {
 
     ModalDrawerSheet(modifier) {
@@ -28,6 +31,21 @@ fun NavigationDrawer(
             label = { Text("Scan") },
             selected = currentRoute == NavigationDestinations.SCAN2.name,
             onClick = { navigateToScan(); closeDrawer() },
+        )
+        NavigationDrawerItem(
+            label = { Text("MIDI record") },
+            selected = currentRoute == NavigationDestinations.MIDI_RECORD.name,
+            onClick = { navigateToMidiRecord(); closeDrawer() },
+        )
+        NavigationDrawerItem(
+            label = { Text("MIDI play") },
+            selected = currentRoute == NavigationDestinations.MIDI_PLAY.name,
+            onClick = { navigateToMidiPlay(); closeDrawer() },
+        )
+        NavigationDrawerItem(
+            label = { Text("Sessions") },
+            selected = currentRoute == NavigationDestinations.MIDI_SESSION_LIST.name,
+            onClick = { navigateToSessionList(); closeDrawer() },
         )
     }
 

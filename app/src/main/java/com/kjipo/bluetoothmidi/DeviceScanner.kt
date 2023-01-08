@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.ParcelUuid
 import androidx.core.app.ActivityCompat
+import com.kjipo.bluetoothmidi.midi.MidiHandler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
@@ -108,6 +109,8 @@ class DeviceScanner(private val applicationContext: Context) {
     }
 
     fun scanStatus() = isScanning
+
+
 
     inner class BluetoothScanCallback : ScanCallback() {
 

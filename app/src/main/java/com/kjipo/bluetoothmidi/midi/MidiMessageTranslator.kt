@@ -4,7 +4,7 @@ import android.media.midi.MidiReceiver
 
 
 /**
- * This is based on MidiFramer in the MidiBtlePairing project in android-midisuite, licensed other under the Apache License, Version 2.0
+ * This is based on MidiFramer in the MidiBtlePairing project in android-midisuite, licensed under the Apache License, Version 2.0
  */
 @ExperimentalUnsignedTypes
 class MidiMessageTranslator(private val receiver: MidiMessageHandler): MidiReceiver() {
