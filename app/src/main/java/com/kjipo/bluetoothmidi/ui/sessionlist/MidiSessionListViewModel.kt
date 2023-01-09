@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-class MidiSessionViewModel(
+class MidiSessionListViewModel(
     private val midiSessionRepository: MidiSessionRepository
 ) : ViewModel() {
 
@@ -41,7 +41,7 @@ class MidiSessionViewModel(
             object: ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MidiSessionViewModel(midiSessionRepository) as T
+                return MidiSessionListViewModel(midiSessionRepository) as T
             }
         }
 

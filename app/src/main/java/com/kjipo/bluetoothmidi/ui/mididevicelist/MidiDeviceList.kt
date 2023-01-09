@@ -1,4 +1,4 @@
-package com.kjipo.bluetoothmidi.ui.midirecord
+package com.kjipo.bluetoothmidi.ui.mididevicelist
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -57,12 +57,12 @@ fun MidiDeviceList(@PreviewParameter(MidiDeviceListDataProvider::class) midiDevi
 
     Column {
         midiDeviceListInput.foundDevices.forEach { bluetoothDeviceData ->
-            MidiDeviceEntry(
-                MidiDeviceEntryInput(
-                    bluetoothDeviceData,
-                    midiDeviceListInput.selectedDevice
+                MidiDeviceEntry(
+                    MidiDeviceEntryInput(
+                        bluetoothDeviceData,
+                        midiDeviceListInput.selectedDevice
+                    )
                 )
-            )
         }
         Row(Modifier.fillMaxWidth()) {
             Text(text = midiDeviceListInput.connectedDeviceAddress.let {

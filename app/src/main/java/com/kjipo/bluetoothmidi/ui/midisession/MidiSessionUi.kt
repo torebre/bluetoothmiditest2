@@ -13,17 +13,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.kjipo.bluetoothmidi.connect.ConnectViewModel
-import com.kjipo.bluetoothmidi.connect.MidiDeviceConnectUiState
+import com.kjipo.bluetoothmidi.connect.MidiSessionViewModel
+import com.kjipo.bluetoothmidi.connect.MidiSessionUiState
 
 @Composable
-fun ConnectRoute(connectViewModel: ConnectViewModel, navigateToHome: () -> Unit) {
-    val uiState by connectViewModel.uiState.collectAsState()
+fun MidiSessionRoute(midiSessionViewModel: MidiSessionViewModel, navigateToHome: () -> Unit) {
+    val uiState by midiSessionViewModel.uiState.collectAsState()
 
-    ConnectRoute(
-        ConnectRouteInputHolder(
+    MidiSessionRoute(
+        MidiSessionRouteInputHolder(
             {
-                connectViewModel.closeSession()
+                midiSessionViewModel.closeSession()
                 navigateToHome()
             },
             midiDeviceConnectUiState = uiState
@@ -33,19 +33,19 @@ fun ConnectRoute(connectViewModel: ConnectViewModel, navigateToHome: () -> Unit)
 }
 
 
-class ConnectRouteInputHolder(
+class MidiSessionRouteInputHolder(
     val saveSessionCallback: () -> Unit,
-    val midiDeviceConnectUiState: MidiDeviceConnectUiState
+    val midiDeviceConnectUiState: MidiSessionUiState
 )
 
 
-class ConnectRouteInputHolderProvider : PreviewParameterProvider<ConnectRouteInputHolder> {
+class ConnectRouteInputHolderProvider : PreviewParameterProvider<MidiSessionRouteInputHolder> {
     override val values = sequenceOf(
-        ConnectRouteInputHolder(
+        MidiSessionRouteInputHolder(
             {
                 // Do nothing
             },
-            MidiDeviceConnectUiState(
+            MidiSessionUiState(
                 "",
                 false,
                 0,
@@ -57,19 +57,21 @@ class ConnectRouteInputHolderProvider : PreviewParameterProvider<ConnectRouteInp
 
 @Preview(showBackground = true)
 @Composable
-fun ConnectRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) connectRouteInputHolder: ConnectRouteInputHolder) {
+fun MidiSessionRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) midiSessionRouteInputHolder: MidiSessionRouteInputHolder) {
 
     Column {
         Row {
-            Text("Connected: ${connectRouteInputHolder.midiDeviceConnectUiState.connected}")
+            Text("Connected: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.connected}")
         }
         Row {
-            Text("Number of received messages: ${connectRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
+            Text("Number of received messages: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
+        }
+        Row {
+            Text("Session duration: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.sessionDurationInSeconds}")
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            Button(onClick = connectRouteInputHolder.saveSessionCallback) {
+            Button(onClick = midiSessionRouteInputHolder.saveSessionCallback) {
                 Text("Close session")
-
             }
         }
     }

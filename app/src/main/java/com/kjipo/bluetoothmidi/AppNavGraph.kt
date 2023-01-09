@@ -18,15 +18,15 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.*
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
-import com.kjipo.bluetoothmidi.connect.ConnectViewModel
+import com.kjipo.bluetoothmidi.connect.MidiSessionViewModel
 import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.midi.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.ui.midiplay.PlayMidi
-import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceList
-import com.kjipo.bluetoothmidi.ui.midirecord.MidiDeviceListInput
+import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceList
+import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceListInput
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUi
 
 enum class NavigationDestinations {
@@ -145,14 +145,14 @@ fun AppNavGraph(
         composable(
             NavigationDestinations.MIDI_RECORD.name
         ) {
-            val connectViewModel: ConnectViewModel = viewModel(
-                factory = ConnectViewModel.provideFactory(
+            val midiSessionViewModel: MidiSessionViewModel = viewModel(
+                factory = MidiSessionViewModel.provideFactory(
                     activity.applicationContext,
                     midiHandler,
                     midiSessionRepository
                 )
             )
-            ConnectRoute(connectViewModel) {
+            MidiSessionRoute(midiSessionViewModel) {
                 navigateToHome()
             }
         }
@@ -162,8 +162,8 @@ fun AppNavGraph(
         composable(
             NavigationDestinations.MIDI_SESSION_LIST.name
         ) {
-            val sessionViewModel: MidiSessionViewModel =
-                viewModel(factory = MidiSessionViewModel.provideFactory(midiSessionRepository))
+            val sessionViewModel: MidiSessionListViewModel =
+                viewModel(factory = MidiSessionListViewModel.provideFactory(midiSessionRepository))
             MidiSessionUi(midiSessionUiInputData = sessionViewModel.uiState)
         }
 

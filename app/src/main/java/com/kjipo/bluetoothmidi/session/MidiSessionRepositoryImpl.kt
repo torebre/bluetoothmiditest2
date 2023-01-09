@@ -3,6 +3,7 @@ package com.kjipo.bluetoothmidi.session
 import android.content.Context
 import androidx.room.Room
 import com.kjipo.bluetoothmidi.midi.MidiMessage
+import java.time.Instant
 import java.time.Instant.now
 
 class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
@@ -60,6 +61,10 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
 
     override suspend fun getStoredSessions(): List<Session> {
         return sessionDatabase.sessionDao().getAllSessions().filter { it.sessionEnd != null }
+    }
+
+    override suspend fun getCurrentSession(): Session? {
+        return currentSession
     }
 
 
