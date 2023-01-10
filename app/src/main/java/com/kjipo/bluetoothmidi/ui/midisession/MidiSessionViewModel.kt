@@ -22,7 +22,8 @@ import java.time.Instant
 @OptIn(ExperimentalUnsignedTypes::class)
 class MidiSessionViewModel(
     private val midiHandler: MidiHandler,
-    private val midiSessionRepository: MidiSessionRepository
+    private val midiSessionRepository: MidiSessionRepository,
+    private val navigateToHome: () -> Unit
 ) : ViewModel() {
 
     private val viewModelState = MutableStateFlow(MidiSessionUiState())
@@ -43,6 +44,7 @@ class MidiSessionViewModel(
 
     private fun startSession() {
         viewModelScope.launch {
+            midiSessionRepository.startSession()
             updateTimeTracker()
         }
     }
@@ -66,8 +68,10 @@ class MidiSessionViewModel(
 
     fun closeSession() {
         // TODO Is this the correct scope to use?
+        viewModelState.update { it.copy(closingSession = true) }
         viewModelScope.launch {
             midiSessionRepository.closeSession()
+            navigateToHome()
         }
     }
 
@@ -116,14 +120,16 @@ class MidiSessionViewModel(
         fun provideFactory(
             applicationContext: Context,
             midiHandler: MidiHandler,
-            midiSessionRepository: MidiSessionRepository
+            midiSessionRepository: MidiSessionRepository,
+            navigateToHome: () -> Unit
         ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     return MidiSessionViewModel(
                         midiHandler,
-                        midiSessionRepository
+                        midiSessionRepository,
+                        navigateToHome
                     ) as T
                 }
             }
@@ -138,5 +144,6 @@ data class MidiSessionUiState(
     val connected: Boolean = false,
     val numberOfReceivedMessages: Int = 0,
     val deviceNotFound: Boolean = false,
-    val sessionDurationInSeconds: Long = 0
+    val sessionDurationInSeconds: Long = 0,
+    val closingSession: Boolean = false
 )

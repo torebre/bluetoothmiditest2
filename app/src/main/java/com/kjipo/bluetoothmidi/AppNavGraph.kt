@@ -149,7 +149,8 @@ fun AppNavGraph(
                 factory = MidiSessionViewModel.provideFactory(
                     activity.applicationContext,
                     midiHandler,
-                    midiSessionRepository
+                    midiSessionRepository,
+                    navigateToHome
                 )
             )
             MidiSessionRoute(midiSessionViewModel) {

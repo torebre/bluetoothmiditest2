@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity
 class SessionMidiMessage(
     @PrimaryKey(autoGenerate = true) var id: Int = 0,
-    @ColumnInfo(name = "sessionid") val sessionId: Int? = null,
+    @ColumnInfo(name = "sessionid") val sessionId: Long? = null,
     @ColumnInfo(name = "midicommand") val midiCommand: Int? = null,
     @ColumnInfo(name = "mididata") val midiData: String? = null,
     @ColumnInfo(name = "channel") val channel: Int? = null,

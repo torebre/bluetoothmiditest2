@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 
 
 data class MidiSessionData(
-    val midiSessionId: Int,
+    val midiSessionId: Long,
     val start: LocalDateTime,
     val stop: LocalDateTime
 )
@@ -74,7 +74,7 @@ class MidiSessionUiParameterProvider : PreviewParameterProvider<StateFlow<MidiSe
 fun MidiSessionUi(@PreviewParameter(MidiSessionUiParameterProvider::class) midiSessionUiInputData: StateFlow<MidiSessionUiState>) {
     val sessionDataUi by midiSessionUiInputData.collectAsState()
     val selectedSession = remember {
-        mutableStateOf(0)
+        mutableStateOf(0L)
     }
 
     Column {
@@ -87,7 +87,7 @@ fun MidiSessionUi(@PreviewParameter(MidiSessionUiParameterProvider::class) midiS
 
 class SessionEntryData(
     val midiSessionData: MidiSessionData,
-    val selectedMidiSession: MutableState<Int>
+    val selectedMidiSession: MutableState<Long>
 )
 
 class SessionEntryDataProvider : PreviewParameterProvider<SessionEntryData> {

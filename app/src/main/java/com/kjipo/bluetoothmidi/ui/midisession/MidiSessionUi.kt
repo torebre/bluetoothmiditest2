@@ -67,7 +67,12 @@ fun MidiSessionRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) m
             Text("Number of received messages: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
         }
         Row {
-            Text("Session duration: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.sessionDurationInSeconds}")
+            if(midiSessionRouteInputHolder.midiDeviceConnectUiState.closingSession) {
+                Text("Closing session")
+            }
+            else {
+                Text("Session duration: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.sessionDurationInSeconds}")
+            }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             Button(onClick = midiSessionRouteInputHolder.saveSessionCallback) {

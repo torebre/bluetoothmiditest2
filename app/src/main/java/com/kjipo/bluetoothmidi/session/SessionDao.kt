@@ -7,7 +7,7 @@ import androidx.room.*
 interface SessionDao {
 
     @Insert
-    suspend fun insertSession(session: Session)
+    suspend fun insertSession(session: Session): Long
 
     @Update
     suspend fun updateSession(session: Session)
