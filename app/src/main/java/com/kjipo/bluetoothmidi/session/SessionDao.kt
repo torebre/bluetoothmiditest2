@@ -24,4 +24,6 @@ interface SessionDao {
     @Query("SELECT id, sessionId, midiCommand, midiData, channel, timestamp FROM sessionmidimessage WHERE sessionmidimessage.sessionId = :sessionId")
     suspend fun getAllMidiMessagesForSession(sessionId: Long): List<SessionMidiMessage>
 
+    @Query("SELECT * FROM session WHERE uid = :sessionId")
+    suspend fun getSession(sessionId: Long): Session?
 }

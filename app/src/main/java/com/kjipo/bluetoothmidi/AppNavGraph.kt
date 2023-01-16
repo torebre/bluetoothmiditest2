@@ -12,9 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.accompanist.permissions.*
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
@@ -24,10 +26,14 @@ import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.midi.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
+import com.kjipo.bluetoothmidi.session.SessionDatabase
 import com.kjipo.bluetoothmidi.ui.midiplay.PlayMidi
 import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceList
 import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceListInput
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUi
+import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUiInput
+import com.kjipo.bluetoothmidi.ui.sessionview.SessionScreenRoute
+import com.kjipo.bluetoothmidi.ui.sessionview.SessionViewModel
 
 enum class NavigationDestinations {
     HOME,
@@ -35,7 +41,8 @@ enum class NavigationDestinations {
     MIDI_RECORD,
     MIDI_PLAY,
     SCAN2,
-    MIDI_SESSION_LIST
+    MIDI_SESSION_LIST,
+    SESSION_VIEW
 }
 
 class NavigationActions(navController: NavHostController) {
@@ -105,6 +112,16 @@ class NavigationActions(navController: NavHostController) {
         }
     }
 
+    val navigateToSessionView: (Long) -> Unit = { sessionId ->
+        navController.navigate("${NavigationDestinations.SESSION_VIEW.name}/$sessionId") {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = false
+            }
+            launchSingleTop = true
+            restoreState = false
+        }
+    }
+
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -114,10 +131,12 @@ fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = NavigationDestinations.HOME.name,
     navigateToHome: () -> Unit,
+    navigateToSessionInformation: (Long) -> Unit,
     activity: Activity,
     deviceScanner: DeviceScanner,
     midiHandler: MidiHandler,
-    midiSessionRepository: MidiSessionRepository
+    midiSessionRepository: MidiSessionRepository,
+    sessionDatabase: SessionDatabase
 ) {
     NavHost(
         navController = navController,
@@ -165,13 +184,22 @@ fun AppNavGraph(
         ) {
             val sessionViewModel: MidiSessionListViewModel =
                 viewModel(factory = MidiSessionListViewModel.provideFactory(midiSessionRepository))
-            MidiSessionUi(midiSessionUiInputData = sessionViewModel.uiState)
+            MidiSessionUi(midiSessionUiInputData = MidiSessionUiInput(sessionViewModel.uiState, navigateToSessionInformation))
         }
 
         composable(NavigationDestinations.MIDI_PLAY.name) {
             val midiPlayViewModel: PlayViewModel =
                 viewModel(factory = PlayViewModel.provideFactory(midiHandler))
             PlayMidi(onClickPlay = { midiPlayViewModel.play() })
+        }
+
+        composable("${NavigationDestinations.SESSION_VIEW.name}/{sessionId}", arguments = listOf(navArgument("sessionId") { type = NavType.StringType})) { navBackStackEntry ->
+            // TODO Why does it not work with getLong?
+            val sessionId = navBackStackEntry.arguments?.getString("sessionId")!!
+
+            val sessionViewModel: SessionViewModel =
+                viewModel(factory = SessionViewModel.provideFactory(sessionId.toLong(), sessionDatabase.sessionDao()))
+            SessionScreenRoute(sessionViewModel)
         }
 
     }

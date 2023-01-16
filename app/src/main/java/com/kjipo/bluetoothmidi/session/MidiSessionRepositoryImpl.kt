@@ -1,23 +1,13 @@
 package com.kjipo.bluetoothmidi.session
 
-import android.content.Context
-import androidx.room.Room
 import com.kjipo.bluetoothmidi.midi.MidiMessage
 import timber.log.Timber
-import java.time.Instant
 import java.time.Instant.now
 
 class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
     MidiSessionRepository {
 
     private var currentSession: Session? = null
-
-    constructor(applicationContext: Context) : this(
-        Room.databaseBuilder(applicationContext, SessionDatabase::class.java, "session-database")
-                // TODO Only here while developing
-            .fallbackToDestructiveMigration()
-            .build()
-    )
 
     override suspend fun startSession(): Long {
         return startNewSession().uid
@@ -73,6 +63,8 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
     override suspend fun getCurrentSession(): Session? {
         return currentSession
     }
+
+
 
 
 }

@@ -28,47 +28,56 @@ data class MidiSessionData(
     val stop: LocalDateTime
 )
 
+class MidiSessionUiInput(
+    val midiSessionUiState: StateFlow<MidiSessionUiState>,
+    val navigateToSessionInformation: (Long) -> Unit
+)
 
-class MidiSessionUiParameterProvider : PreviewParameterProvider<StateFlow<MidiSessionUiState>> {
+class MidiSessionUiParameterProvider : PreviewParameterProvider<MidiSessionUiInput> {
 
     override val values = sequenceOf(
-        MutableStateFlow(
-            MidiSessionUiState(
-                listOf(
-                    MidiSessionData(
-                        1,
-                        LocalDateTime.now().minusDays(4),
-                        LocalDateTime.now().minusDays(3)
-                    ),
-                    MidiSessionData(
-                        2,
-                        LocalDateTime.now().minusDays(3),
-                        LocalDateTime.now().minusDays(2)
-                    ),
+        MidiSessionUiInput(
+            MutableStateFlow(
+                MidiSessionUiState(
+                    listOf(
+                        MidiSessionData(
+                            1,
+                            LocalDateTime.now().minusDays(4),
+                            LocalDateTime.now().minusDays(3)
+                        ),
+                        MidiSessionData(
+                            2,
+                            LocalDateTime.now().minusDays(3),
+                            LocalDateTime.now().minusDays(2)
+                        ),
 
-                    MidiSessionData(
-                        3,
-                        LocalDateTime.now().minusDays(2),
-                        LocalDateTime.now().minusDays(1)
+                        MidiSessionData(
+                            3,
+                            LocalDateTime.now().minusDays(2),
+                            LocalDateTime.now().minusDays(1)
+                        )
                     )
                 )
-            )
-        )
-    )
+            ),
+            { sessionId: Long ->
+                // Do nothing
+            }
+        ))
 
 }
 
 @Preview
 @Composable
-fun MidiSessionUi(@PreviewParameter(MidiSessionUiParameterProvider::class) midiSessionUiInputData: StateFlow<MidiSessionUiState>) {
-    val sessionDataUi by midiSessionUiInputData.collectAsState()
+fun MidiSessionUi(
+    @PreviewParameter(MidiSessionUiParameterProvider::class) midiSessionUiInputData: MidiSessionUiInput) {
+    val sessionDataUi by midiSessionUiInputData.midiSessionUiState.collectAsState()
     val selectedSession = remember {
         mutableStateOf(0L)
     }
 
     Column {
         sessionDataUi.storedSessions.forEach { midiSessionData ->
-            SessionEntry(SessionEntryData(midiSessionData, selectedSession))
+            SessionEntry(SessionEntryData(midiSessionData, selectedSession, midiSessionUiInputData.navigateToSessionInformation))
         }
     }
 
@@ -76,7 +85,8 @@ fun MidiSessionUi(@PreviewParameter(MidiSessionUiParameterProvider::class) midiS
 
 class SessionEntryData(
     val midiSessionData: MidiSessionData,
-    val selectedMidiSession: MutableState<Long>
+    val selectedMidiSession: MutableState<Long>,
+    val navigateToSessionInformation: (Long) -> Unit
 )
 
 class SessionEntryDataProvider : PreviewParameterProvider<SessionEntryData> {
@@ -87,7 +97,10 @@ class SessionEntryDataProvider : PreviewParameterProvider<SessionEntryData> {
                 LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1)
             ),
-            mutableStateOf(1)
+            mutableStateOf(1),
+            { sessionId ->
+                // Do nothing
+            }
         )
     )
 }
@@ -97,16 +110,23 @@ fun SessionEntry(sessionEntryData: SessionEntryData) {
     Column {
         LazyRow(
             Modifier
-                .fillMaxWidth().padding(start = 4.dp, top = 2.dp)
+                .fillMaxWidth()
+                .padding(start = 4.dp, top = 2.dp)
                 .selectable(sessionEntryData.midiSessionData.midiSessionId == sessionEntryData.selectedMidiSession.value,
                     onClick = {
-                        sessionEntryData.selectedMidiSession.value =
-                            sessionEntryData.midiSessionData.midiSessionId
+                        // TODO Enable selection again
+//                        sessionEntryData.selectedMidiSession.value =
+//                            sessionEntryData.midiSessionData.midiSessionId
+                        sessionEntryData.navigateToSessionInformation(sessionEntryData.midiSessionData.midiSessionId)
                     })
         ) {
             item {
                 Column(modifier = Modifier.padding(start = 2.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp, bottom = 2.dp)
+                    ) {
                         Text(
                             DateTimeFormatter.ISO_DATE.format(sessionEntryData.midiSessionData.start),
                             style = MaterialTheme.typography.titleMedium
@@ -137,10 +157,9 @@ fun Duration.toSecondsPartHelper(): Int {
 }
 
 private fun toTwoDigits(value: Int): String {
-    return if(value < 10) {
+    return if (value < 10) {
         "0${value}"
-    }
-    else {
+    } else {
         "$value"
     }
 }
@@ -153,7 +172,11 @@ private fun getFormattedDuration(sessionEntryData: SessionEntryData): String {
             sessionEntryData.midiSessionData.stop
         )
     ) {
-        return "${toTwoDigits(toHoursPartHelper())}:${toTwoDigits(toMinutesPartHelper())}:${toTwoDigits(toSecondsPartHelper())}"
+        return "${toTwoDigits(toHoursPartHelper())}:${toTwoDigits(toMinutesPartHelper())}:${
+            toTwoDigits(
+                toSecondsPartHelper()
+            )
+        }"
     }
 }
 
