@@ -3,17 +3,21 @@ package com.kjipo.bluetoothmidi.ui.sessionlist
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
 import com.kjipo.bluetoothmidi.MidiSessionUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -24,23 +28,8 @@ data class MidiSessionData(
     val stop: LocalDateTime
 )
 
-//class MidiSessionUiInputData(val storedSessions: List<MidiSessionData>)
-//class MidiSessionUiInputData(val storedSessions: List<MidiSessionData>)
-
 
 class MidiSessionUiParameterProvider : PreviewParameterProvider<StateFlow<MidiSessionUiState>> {
-
-//    override val values = sequenceOf(
-//        MidiSessionUiInputData(
-//            listOf(
-//                MidiSessionData(
-//                    1,
-//                    LocalDateTime.now().minusDays(2),
-//                    LocalDateTime.now().minusDays(1)
-//                )
-//            )
-//        )
-//    )
 
     override val values = sequenceOf(
         MutableStateFlow(
@@ -78,9 +67,9 @@ fun MidiSessionUi(@PreviewParameter(MidiSessionUiParameterProvider::class) midiS
     }
 
     Column {
-            sessionDataUi.storedSessions.forEach { midiSessionData ->
-                SessionEntry(SessionEntryData(midiSessionData, selectedSession))
-            }
+        sessionDataUi.storedSessions.forEach { midiSessionData ->
+            SessionEntry(SessionEntryData(midiSessionData, selectedSession))
+        }
     }
 
 }
@@ -108,7 +97,7 @@ fun SessionEntry(sessionEntryData: SessionEntryData) {
     Column {
         LazyRow(
             Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().padding(start = 4.dp, top = 2.dp)
                 .selectable(sessionEntryData.midiSessionData.midiSessionId == sessionEntryData.selectedMidiSession.value,
                     onClick = {
                         sessionEntryData.selectedMidiSession.value =
@@ -116,9 +105,55 @@ fun SessionEntry(sessionEntryData: SessionEntryData) {
                     })
         ) {
             item {
-                Text(DateTimeFormatter.ISO_DATE_TIME.format(sessionEntryData.midiSessionData.start))
-                Text(DateTimeFormatter.ISO_DATE_TIME.format(sessionEntryData.midiSessionData.stop))
+                Column(modifier = Modifier.padding(start = 2.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp)) {
+                        Text(
+                            DateTimeFormatter.ISO_DATE.format(sessionEntryData.midiSessionData.start),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    Row {
+                        Text(
+                            getFormattedDuration(sessionEntryData),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
         }
     }
 }
+
+fun Duration.toHoursPartHelper(): Int {
+    return (toHours() % 24).toInt()
+}
+
+fun Duration.toMinutesPartHelper(): Int {
+    return (toMinutes() % 60).toInt()
+}
+
+fun Duration.toSecondsPartHelper(): Int {
+    return (seconds % 60).toInt()
+}
+
+private fun toTwoDigits(value: Int): String {
+    return if(value < 10) {
+        "0${value}"
+    }
+    else {
+        "$value"
+    }
+}
+
+
+private fun getFormattedDuration(sessionEntryData: SessionEntryData): String {
+    with(
+        Duration.between(
+            sessionEntryData.midiSessionData.start,
+            sessionEntryData.midiSessionData.stop
+        )
+    ) {
+        return "${toTwoDigits(toHoursPartHelper())}:${toTwoDigits(toMinutesPartHelper())}:${toTwoDigits(toSecondsPartHelper())}"
+    }
+}
+

@@ -42,7 +42,7 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
         }
     }
 
-    override suspend fun getMessagesForSession(sessionId: Int): List<SessionMidiMessage> {
+    override suspend fun getMessagesForSession(sessionId: Long): List<SessionMidiMessage> {
         return sessionDatabase.sessionDao().getAllMidiMessagesForSession(sessionId)
     }
 

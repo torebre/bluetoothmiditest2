@@ -8,7 +8,7 @@ interface MidiSessionRepository {
 
     suspend fun addMessageToSession(translatedMidiMessage: MidiMessage)
 
-    suspend fun getMessagesForSession(sessionId: Int): List<SessionMidiMessage>
+    suspend fun getMessagesForSession(sessionId: Long): List<SessionMidiMessage>
 
     suspend fun closeSession()
 
