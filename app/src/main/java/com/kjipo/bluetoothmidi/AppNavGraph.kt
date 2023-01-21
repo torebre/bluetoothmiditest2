@@ -9,7 +9,9 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -27,6 +29,7 @@ import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.midi.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.session.SessionDatabase
+import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
 import com.kjipo.bluetoothmidi.ui.midiplay.PlayMidi
 import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceList
 import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceListInput
@@ -34,6 +37,7 @@ import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUi
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUiInput
 import com.kjipo.bluetoothmidi.ui.sessionview.SessionScreenRoute
 import com.kjipo.bluetoothmidi.ui.sessionview.SessionViewModel
+import timber.log.Timber
 
 enum class NavigationDestinations {
     HOME,
@@ -52,7 +56,7 @@ class NavigationActions(navController: NavHostController) {
                 saveState = true
             }
             launchSingleTop = true
-            restoreState = true
+            restoreState = false
         }
     }
 
@@ -144,7 +148,11 @@ fun AppNavGraph(
         modifier = modifier
     ) {
         composable(NavigationDestinations.HOME.name) {
-            HomeRoute()
+            Timber.tag("NavGraph").i("Local view: ${LocalView.current}")
+            // TODO Just trying to set viewModelStoreOwner to the NavBackStackEntry to see what happens
+            val homeScreenViewModel: HomeScreenModel = viewModel(viewModelStoreOwner = it, factory = HomeScreenModel.provideFactory())
+
+            HomeRoute(homeScreenViewModel)
         }
         composable(NavigationDestinations.DEVICE_LIST.name) {
             val bluetoothPermissionState = if (Build.VERSION.SDK_INT <= 30) {

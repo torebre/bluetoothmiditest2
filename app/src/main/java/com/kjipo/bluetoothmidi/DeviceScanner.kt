@@ -11,7 +11,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.ParcelUuid
 import androidx.core.app.ActivityCompat
-import com.kjipo.bluetoothmidi.midi.MidiHandler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
@@ -22,21 +21,10 @@ class DeviceScanner(private val applicationContext: Context) {
     private val scanFilter =
         ScanFilter.Builder().setServiceUuid(ParcelUuid(MIDI_OVER_BTLE_UUID)).build()
 
-
-    private var bluetoothScanCallback: BluetoothScanCallback? = null
-
     private var isScanning = false
 
-//    private val deviceListViewModel by viewModels<DeviceListViewModel> {
-//        DeviceListViewModelFactory()
-//    }
-
-
+    private var bluetoothScanCallback: BluetoothScanCallback? = null
     private val foundDevices: MutableStateFlow<Set<BluetoothDeviceData>>
-
-    private val BluetoothAdapter.isDisabled: Boolean
-        get() = !isEnabled
-
     private val bluetoothManager: BluetoothManager
 
 
@@ -44,6 +32,18 @@ class DeviceScanner(private val applicationContext: Context) {
         bluetoothManager =
             applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
+        foundDevices = MutableStateFlow(
+            if (bluetoothManager.adapter == null) {
+                // This is the case when running on an emulator
+                emptySet()
+            } else {
+                getBondedBluetoothDevices()
+            }
+        )
+
+    }
+
+    private fun getBondedBluetoothDevices(): Set<BluetoothDeviceData> {
         val bondedDevices =
             bluetoothManager.adapter.bondedDevices.filter { bondedBluetoothDevice ->
                 Timber.tag("Bluetooth").i("Bluetooth device: ${bondedBluetoothDevice.name}")
@@ -64,7 +64,7 @@ class DeviceScanner(private val applicationContext: Context) {
                     it.bondState
                 )
             }.toSet()
-        foundDevices = MutableStateFlow(bondedDevices)
+        return bondedDevices
     }
 
 
@@ -109,7 +109,6 @@ class DeviceScanner(private val applicationContext: Context) {
     }
 
     fun scanStatus() = isScanning
-
 
 
     inner class BluetoothScanCallback : ScanCallback() {

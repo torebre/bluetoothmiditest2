@@ -50,7 +50,6 @@ class MidiSessionUiParameterProvider : PreviewParameterProvider<MidiSessionUiInp
                             LocalDateTime.now().minusDays(3),
                             LocalDateTime.now().minusDays(2)
                         ),
-
                         MidiSessionData(
                             3,
                             LocalDateTime.now().minusDays(2),
