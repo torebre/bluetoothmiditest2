@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -22,15 +23,25 @@ import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModelUiState
 fun HomeRoute(homeScreenModel: HomeScreenModel) {
     val uiState by homeScreenModel.uiState.collectAsState()
 
-    HomeRouteScreen(homeRouteScreenInput = HomeRouteScreenInput(uiState))
+    HomeRouteScreen(
+        homeRouteScreenInput = HomeRouteScreenInput(
+            uiState,
+            { homeScreenModel.connectedToLastConnectedDevice() })
+    )
 
 }
 
-class HomeRouteScreenInput(val homeScreenModelUiState: HomeScreenModelUiState)
+class HomeRouteScreenInput(
+    val homeScreenModelUiState: HomeScreenModelUiState,
+    val connectedToLastConnectedDevice: () -> Unit
+)
 
 class HomeRouteScreenInputParameterProvider : PreviewParameterProvider<HomeRouteScreenInput> {
 
-    override val values = sequenceOf(HomeRouteScreenInput(HomeScreenModelUiState("Test")))
+    override val values = sequenceOf(HomeRouteScreenInput(HomeScreenModelUiState("Test")
+    ) {
+        // Do nothing
+    })
 
 }
 
@@ -49,12 +60,19 @@ fun HomeRouteScreen(@PreviewParameter(HomeRouteScreenInputParameterProvider::cla
         }
         Row {
             Text(
-                text = "Previously connected device: ${homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice}",
+                text = "Previously connected device: ${homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice} (${homeRouteScreenInput.homeScreenModelUiState.connected})",
                 modifier = Modifier
                     .fillMaxWidth(),
                 style = MaterialTheme.typography.h6,
                 color = Color.Black
             )
         }
+        Row {
+            Button(onClick = homeRouteScreenInput.connectedToLastConnectedDevice, enabled = homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice.isNotEmpty()) {
+                Text(
+                    text = "Connect",
+                )
+            }
+            }
     }
 }

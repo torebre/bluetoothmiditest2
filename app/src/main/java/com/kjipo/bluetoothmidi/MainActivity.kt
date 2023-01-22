@@ -1,6 +1,7 @@
 package com.kjipo.bluetoothmidi
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -20,8 +21,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, true)
-        requestPermissions()
 
+        requestPermissions()
 
         val appContainer = (application as BluetoothMidiApplication).container
         setContent {

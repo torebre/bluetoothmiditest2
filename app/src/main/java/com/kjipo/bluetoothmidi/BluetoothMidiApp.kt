@@ -20,7 +20,6 @@ fun BluetoothMidiApp(
     widthSizeClass: WindowWidthSizeClass,
     activity: Activity
 ) {
-
     AppTheme {
         val navController = rememberNavController()
         val navigationActions = remember(navController) {
@@ -54,7 +53,7 @@ fun BluetoothMidiApp(
                     navController = navController,
                     navigateToHome = navigationActions.navigateToHome,
                     navigateToSessionInformation = navigationActions.navigateToSessionView,
-                    activity = activity,
+                    mainActivity = activity,
                     sessionDatabase = appContainer.sessionDatabase,
                     deviceScanner = appContainer.deviceScanner,
                     midiHandler = appContainer.midiHandler,

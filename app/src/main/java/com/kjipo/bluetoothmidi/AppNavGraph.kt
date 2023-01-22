@@ -2,6 +2,7 @@ package com.kjipo.bluetoothmidi
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -136,7 +136,7 @@ fun AppNavGraph(
     startDestination: String = NavigationDestinations.HOME.name,
     navigateToHome: () -> Unit,
     navigateToSessionInformation: (Long) -> Unit,
-    activity: Activity,
+    mainActivity: Activity,
     deviceScanner: DeviceScanner,
     midiHandler: MidiHandler,
     midiSessionRepository: MidiSessionRepository,
@@ -150,7 +150,7 @@ fun AppNavGraph(
         composable(NavigationDestinations.HOME.name) {
             Timber.tag("NavGraph").i("Local view: ${LocalView.current}")
             // TODO Just trying to set viewModelStoreOwner to the NavBackStackEntry to see what happens
-            val homeScreenViewModel: HomeScreenModel = viewModel(viewModelStoreOwner = it, factory = HomeScreenModel.provideFactory())
+            val homeScreenViewModel: HomeScreenModel = viewModel(viewModelStoreOwner = it, factory = HomeScreenModel.provideFactory(midiHandler, mainActivity.getPreferences(Context.MODE_PRIVATE)))
 
             HomeRoute(homeScreenViewModel)
         }
@@ -161,7 +161,8 @@ fun AppNavGraph(
                 rememberPermissionState(Manifest.permission.BLUETOOTH_CONNECT)
             }
             val deviceListModel: DeviceListViewModel =
-                viewModel(factory = DeviceListViewModel.provideFactory(deviceScanner, midiHandler))
+                viewModel(factory = DeviceListViewModel.provideFactory(deviceScanner, midiHandler, mainActivity.getPreferences(
+                    Context.MODE_PRIVATE)))
             MidiDeviceListRoute(
                 deviceListModel, {
                     deviceListModel.connectToDevice(it)
@@ -174,7 +175,7 @@ fun AppNavGraph(
         ) {
             val midiSessionViewModel: MidiSessionViewModel = viewModel(
                 factory = MidiSessionViewModel.provideFactory(
-                    activity.applicationContext,
+                    mainActivity.applicationContext,
                     midiHandler,
                     midiSessionRepository,
                     navigateToHome
@@ -185,7 +186,7 @@ fun AppNavGraph(
             }
         }
         composable(NavigationDestinations.SCAN2.name) {
-            BluetoothConnect(bluetoothPairing = BluetoothPairing(activity))
+            BluetoothConnect(bluetoothPairing = BluetoothPairing(mainActivity))
         }
         composable(
             NavigationDestinations.MIDI_SESSION_LIST.name
