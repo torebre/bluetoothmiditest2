@@ -42,6 +42,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:name="com.kjipo.bluetoothmidi.ui.sessionlist.ExportSessionsFileProvider"
+            android:authorities="com.kjipo.bluetoothmidi"
+            android:exported="false"
+            android:grantUriPermissions="true"/>
     </application>
 
 </manifest>

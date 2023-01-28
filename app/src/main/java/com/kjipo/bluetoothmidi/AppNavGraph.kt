@@ -3,6 +3,7 @@ package com.kjipo.bluetoothmidi
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,10 +12,12 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -38,6 +41,8 @@ import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUiInput
 import com.kjipo.bluetoothmidi.ui.sessionview.SessionScreenRoute
 import com.kjipo.bluetoothmidi.ui.sessionview.SessionViewModel
 import timber.log.Timber
+import java.io.File
+import java.util.zip.ZipFile
 
 enum class NavigationDestinations {
     HOME,
@@ -150,7 +155,13 @@ fun AppNavGraph(
         composable(NavigationDestinations.HOME.name) {
             Timber.tag("NavGraph").i("Local view: ${LocalView.current}")
             // TODO Just trying to set viewModelStoreOwner to the NavBackStackEntry to see what happens
-            val homeScreenViewModel: HomeScreenModel = viewModel(viewModelStoreOwner = it, factory = HomeScreenModel.provideFactory(midiHandler, mainActivity.getPreferences(Context.MODE_PRIVATE)))
+            val homeScreenViewModel: HomeScreenModel = viewModel(
+                viewModelStoreOwner = it,
+                factory = HomeScreenModel.provideFactory(
+                    midiHandler,
+                    mainActivity.getPreferences(Context.MODE_PRIVATE)
+                )
+            )
 
             HomeRoute(homeScreenViewModel)
         }
@@ -161,8 +172,13 @@ fun AppNavGraph(
                 rememberPermissionState(Manifest.permission.BLUETOOTH_CONNECT)
             }
             val deviceListModel: DeviceListViewModel =
-                viewModel(factory = DeviceListViewModel.provideFactory(deviceScanner, midiHandler, mainActivity.getPreferences(
-                    Context.MODE_PRIVATE)))
+                viewModel(
+                    factory = DeviceListViewModel.provideFactory(
+                        deviceScanner, midiHandler, mainActivity.getPreferences(
+                            Context.MODE_PRIVATE
+                        )
+                    )
+                )
             MidiDeviceListRoute(
                 deviceListModel, {
                     deviceListModel.connectToDevice(it)
@@ -193,7 +209,27 @@ fun AppNavGraph(
         ) {
             val sessionViewModel: MidiSessionListViewModel =
                 viewModel(factory = MidiSessionListViewModel.provideFactory(midiSessionRepository))
-            MidiSessionUi(midiSessionUiInputData = MidiSessionUiInput(sessionViewModel.uiState, navigateToSessionInformation))
+            MidiSessionUi(midiSessionUiInputData = MidiSessionUiInput(
+                sessionViewModel.uiState,
+                navigateToSessionInformation
+            ) { sessionIds ->
+//                val directoryToExportTo = File(mainActivity.applicationContext.cacheDir) //, "export_files")
+//                val fileToExportTo = File(directoryToExportTo, "export_file_temp.zip")
+                val fileToExportTo = File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
+
+                val shareCallback = {
+                   val fileUri = FileProvider.getUriForFile(mainActivity.applicationContext, "com.kjipo.bluetoothmidi", fileToExportTo)
+
+                    val shareIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_STREAM, fileUri)
+                        type = "application/zip"
+                    }
+                    mainActivity.startActivity(shareIntent)
+                }
+
+                sessionViewModel.exportData(sessionIds, fileToExportTo, shareCallback)
+            })
         }
 
         composable(NavigationDestinations.MIDI_PLAY.name) {
@@ -202,12 +238,20 @@ fun AppNavGraph(
             PlayMidi(onClickPlay = { midiPlayViewModel.play() })
         }
 
-        composable("${NavigationDestinations.SESSION_VIEW.name}/{sessionId}", arguments = listOf(navArgument("sessionId") { type = NavType.StringType})) { navBackStackEntry ->
+        composable(
+            "${NavigationDestinations.SESSION_VIEW.name}/{sessionId}",
+            arguments = listOf(navArgument("sessionId") { type = NavType.StringType })
+        ) { navBackStackEntry ->
             // TODO Why does it not work with getLong?
             val sessionId = navBackStackEntry.arguments?.getString("sessionId")!!
 
             val sessionViewModel: SessionViewModel =
-                viewModel(factory = SessionViewModel.provideFactory(sessionId.toLong(), sessionDatabase.sessionDao()))
+                viewModel(
+                    factory = SessionViewModel.provideFactory(
+                        sessionId.toLong(),
+                        sessionDatabase.sessionDao()
+                    )
+                )
             SessionScreenRoute(sessionViewModel)
         }
 

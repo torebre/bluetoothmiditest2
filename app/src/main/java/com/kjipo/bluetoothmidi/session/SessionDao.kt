@@ -26,4 +26,7 @@ interface SessionDao {
 
     @Query("SELECT * FROM session WHERE uid = :sessionId")
     suspend fun getSession(sessionId: Long): Session?
+
+    @Query("SELECT * FROM session WHERE uid IN (:sessionIds)")
+    suspend fun getSessions(sessionIds: Collection<Long>): List<Session>
 }

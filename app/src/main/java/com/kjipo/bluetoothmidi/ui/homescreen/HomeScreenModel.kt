@@ -43,7 +43,7 @@ class HomeScreenModel(private val midiHandler: MidiHandler, preferences: SharedP
             viewModelScope.launch {
                 Timber.tag("Bluetooth").i("Opening device with address: $address")
                 if (midiHandler.openDevice(address)) {
-                    Timber.tag("Bluetooth").i("Opened deviced")
+                    Timber.tag("Bluetooth").i("Opened device")
                     viewModelState.update {
                         it.copy(
                             isConnecting = false,

@@ -16,5 +16,6 @@ interface MidiSessionRepository {
 
     suspend fun getCurrentSession(): Session?
 
+    suspend fun getSessions(sessionIds: Collection<Long>): Collection<Session>
 
 }

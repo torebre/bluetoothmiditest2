@@ -65,6 +65,9 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
     }
 
 
+    override suspend fun getSessions(sessionIds: Collection<Long>): Collection<Session> {
+        return sessionDatabase.sessionDao().getSessions(sessionIds)
+    }
 
 
 }
