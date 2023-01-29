@@ -22,6 +22,8 @@ class SessionStoreTest {
     private lateinit var database: SessionDatabase
     private lateinit var context: Context
 
+    private val noteVelocity: Byte = 64
+
 
     @Before
     fun createDatabase() {
@@ -76,6 +78,35 @@ class SessionStoreTest {
         val midiMessages = midiSession.getMessagesForSession(sessionId)
 
         assertThat(midiMessages.size, equalTo(1))
+    }
+
+    @Test
+    fun getSessionsWithMessagesTest() = runBlocking {
+        val midiSession = MidiSessionRepositoryImpl(database)
+        val sessionId = midiSession.startSession()
+        val midiMessages = generateMidiMessages(sessionId)
+
+        midiMessages.forEach {
+            sessionDao.addMidiMessage(it)
+        }
+        midiSession.closeSession()
+
+        val sessions = sessionDao.getSessionsWithMessages(listOf(sessionId))
+
+        assertThat(sessions.size, equalTo(1))
+        assertThat(sessions[0].sessionMidiMessages.size, equalTo(midiMessages.size))
+    }
+
+    private fun generateMidiMessages(sessionId: Long): List<SessionMidiMessage> {
+        return (60..72).map {
+            SessionMidiMessage(
+                0, sessionId,
+                MidiCommand.NoteOn.ordinal,
+                "${it.toByte()},${noteVelocity}",
+                0,
+                now().toEpochMilli()
+            )
+        }.toList()
     }
 
 }

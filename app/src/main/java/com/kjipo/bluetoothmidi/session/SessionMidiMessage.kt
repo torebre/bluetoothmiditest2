@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
+@kotlinx.serialization.Serializable
 class SessionMidiMessage(
     @PrimaryKey(autoGenerate = true) var id: Int = 0,
     @ColumnInfo(name = "sessionid") val sessionId: Long? = null,

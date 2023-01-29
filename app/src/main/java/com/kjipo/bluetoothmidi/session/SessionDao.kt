@@ -29,4 +29,9 @@ interface SessionDao {
 
     @Query("SELECT * FROM session WHERE uid IN (:sessionIds)")
     suspend fun getSessions(sessionIds: Collection<Long>): List<Session>
+
+    @Transaction
+    @Query("SELECT * FROM session WHERE uid IN (:sessionIds)")
+    suspend fun getSessionsWithMessages(sessionIds: Collection<Long>): List<SessionWithMessages>
+
 }
