@@ -46,14 +46,10 @@ class MidiSessionListViewModel(
         Timber.tag("Session").i("Export sessions to $exportedSessionsFile")
 
         viewModelScope.launch {
-           val sessions = midiSessionRepository.getSessions(sessionsToExport)
+           val sessions = midiSessionRepository.getSessionsAndMessages(sessionsToExport)
 
             withContext(Dispatchers.IO) {
-                val sessionMidiMessageMap = sessionsToExport.map { sessionId ->
-                    Pair(sessionId, midiSessionRepository.getMessagesForSession(sessionId))
-                }.toMap()
-
-                ExportFileHelpers.createZipFile(sessions, exportedSessionsFile, sessionMidiMessageMap)
+                ExportFileHelpers.createZipFile(sessions, exportedSessionsFile)
                 shareCallback()
             }
         }

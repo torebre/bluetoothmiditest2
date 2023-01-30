@@ -64,10 +64,12 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
         return currentSession
     }
 
-
-    override suspend fun getSessions(sessionIds: Collection<Long>): Collection<Session> {
+    override suspend fun getSessions(sessionIds: Collection<Long>): List<Session> {
         return sessionDatabase.sessionDao().getSessions(sessionIds)
     }
 
+    override suspend fun getSessionsAndMessages(sessionIds: Collection<Long>): List<SessionWithMessages> {
+        return sessionDatabase.sessionDao().getSessionsWithMessages(sessionIds)
+    }
 
 }

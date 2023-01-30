@@ -22,7 +22,6 @@ class SessionStoreTest {
     private lateinit var database: SessionDatabase
     private lateinit var context: Context
 
-    private val noteVelocity: Byte = 64
 
 
     @Before
@@ -97,16 +96,5 @@ class SessionStoreTest {
         assertThat(sessions[0].sessionMidiMessages.size, equalTo(midiMessages.size))
     }
 
-    private fun generateMidiMessages(sessionId: Long): List<SessionMidiMessage> {
-        return (60..72).map {
-            SessionMidiMessage(
-                0, sessionId,
-                MidiCommand.NoteOn.ordinal,
-                "${it.toByte()},${noteVelocity}",
-                0,
-                now().toEpochMilli()
-            )
-        }.toList()
-    }
 
 }

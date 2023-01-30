@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 @kotlinx.serialization.Serializable
-class SessionMidiMessage(
+data class SessionMidiMessage(
     @PrimaryKey(autoGenerate = true) var id: Int = 0,
     @ColumnInfo(name = "sessionid") val sessionId: Long? = null,
     @ColumnInfo(name = "midicommand") val midiCommand: Int? = null,

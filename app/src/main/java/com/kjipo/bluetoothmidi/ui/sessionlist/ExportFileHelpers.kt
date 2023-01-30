@@ -1,50 +1,59 @@
 package com.kjipo.bluetoothmidi.ui.sessionlist
 
-import com.kjipo.bluetoothmidi.session.Session
-import com.kjipo.bluetoothmidi.session.SessionMidiMessage
+import com.kjipo.bluetoothmidi.session.SessionWithMessages
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToStream
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 
 object ExportFileHelpers {
 
 
-
-     fun createZipFile(sessions: Collection<Session>, exportedSessionsFile: File, midiMessagesFetcher: Map<Long, List<SessionMidiMessage>>) {
+    @OptIn(ExperimentalSerializationApi::class)
+    fun createZipFile(sessions: Collection<SessionWithMessages>, exportedSessionsFile: File) {
         FileOutputStream(exportedSessionsFile).use { fileOutputStream ->
             ZipOutputStream(fileOutputStream).use { zipOutputStream ->
-
                 sessions.map { session ->
-                    val zipEntry = ZipEntry(session.uid.toString())
+                    val zipEntry = ZipEntry(session.session.uid.toString())
                     zipOutputStream.putNextEntry(zipEntry)
-
-
-
-                    val byteArrayInputStream = session.uid.toString().byteInputStream()
-
-                    // TODO Write MIDI-messages to file
-                    while(byteArrayInputStream.available() > 0) {
-                        zipOutputStream.write(byteArrayInputStream.read())
-                    }
-
-
-                    midiMessagesFetcher[session.uid]?.let {
-                        // TODO
-
-
-
-
-                    }
-
-
-
+                    Json.encodeToStream(session, zipOutputStream)
+                    zipOutputStream.closeEntry()
                 }
             }
         }
-     }
+    }
 
+    fun readZipFile(exportedSessionsFile: File): MutableList<SessionWithMessages> {
+        val sessionsWithMessages = mutableListOf<SessionWithMessages>()
+        FileInputStream(exportedSessionsFile).use { fileInputStream ->
+            ZipInputStream(fileInputStream).use { zipInputStream ->
+                var zipEntry = zipInputStream.nextEntry
+
+                while (zipEntry != null) {
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    var readByte = zipInputStream.read()
+                    while(readByte != -1) {
+                        byteArrayOutputStream.write(readByte)
+                        readByte = zipInputStream.read()
+                    }
+                    val readData = String(byteArrayOutputStream.toByteArray())
+
+                    sessionsWithMessages.add(Json.decodeFromString(readData))
+                    zipInputStream.closeEntry()
+                    zipEntry = zipInputStream.nextEntry
+                }
+            }
+        }
+        return sessionsWithMessages
+    }
 
 
 }

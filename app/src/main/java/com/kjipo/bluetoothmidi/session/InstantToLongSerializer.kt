@@ -14,8 +14,9 @@ object InstantToLongSerializer : KSerializer<Instant> {
         PrimitiveSerialDescriptor("Instant", PrimitiveKind.LONG)
 
     override fun serialize(encoder: Encoder, value: Instant) =
-        encoder.encodeLong(value.toEpochMilli())
+        encoder.encodeLong(value.epochSecond)
 
-    override fun deserialize(decoder: Decoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
+    override fun deserialize(decoder: Decoder): Instant =
+        Instant.ofEpochSecond(decoder.decodeLong())
 
 }
