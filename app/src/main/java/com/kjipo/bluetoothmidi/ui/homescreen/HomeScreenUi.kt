@@ -1,9 +1,6 @@
 package com.kjipo.bluetoothmidi
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -17,6 +14,10 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModelUiState
+import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionData
+import com.kjipo.bluetoothmidi.ui.sessionlist.getFormattedDuration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -38,7 +39,15 @@ class HomeRouteScreenInput(
 
 class HomeRouteScreenInputParameterProvider : PreviewParameterProvider<HomeRouteScreenInput> {
 
-    override val values = sequenceOf(HomeRouteScreenInput(HomeScreenModelUiState("Test")
+    override val values = sequenceOf(HomeRouteScreenInput(
+        HomeScreenModelUiState(
+            "Test",
+            previousSession = MidiSessionData(
+                1,
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now()
+            )
+        )
     ) {
         // Do nothing
     })
@@ -49,30 +58,56 @@ class HomeRouteScreenInputParameterProvider : PreviewParameterProvider<HomeRoute
 @Composable
 fun HomeRouteScreen(@PreviewParameter(HomeRouteScreenInputParameterProvider::class) homeRouteScreenInput: HomeRouteScreenInput) {
     Column {
-        Row {
-            Text(
-                text = "Home screen",
-                modifier = Modifier
-                    .fillMaxWidth(),
-                style = MaterialTheme.typography.h6,
-                color = Color.Black
-            )
-        }
-        Row {
-            Text(
-                text = "Previously connected device: ${homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice} (${homeRouteScreenInput.homeScreenModelUiState.connected})",
-                modifier = Modifier
-                    .fillMaxWidth(),
-                style = MaterialTheme.typography.h6,
-                color = Color.Black
-            )
-        }
-        Row {
-            Button(onClick = homeRouteScreenInput.connectedToLastConnectedDevice, enabled = homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice.isNotEmpty()) {
+        Text(
+            text = "Home screen",
+            modifier = Modifier
+                .fillMaxWidth(),
+            style = MaterialTheme.typography.h6,
+            color = Color.Black
+        )
+        Text(
+            text = "Previously connected device: ${homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice} (${homeRouteScreenInput.homeScreenModelUiState.connected})",
+            modifier = Modifier
+                .fillMaxWidth(),
+            style = MaterialTheme.typography.h6,
+            color = Color.Black
+        )
+
+        PreviousSession(midiSessionData = homeRouteScreenInput.homeScreenModelUiState.previousSession)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = homeRouteScreenInput.connectedToLastConnectedDevice,
+                enabled = homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice.isNotEmpty()
+            ) {
                 Text(
                     text = "Connect",
                 )
             }
-            }
+        }
+
     }
+}
+
+
+@Composable
+fun PreviousSession(midiSessionData: MidiSessionData?) {
+    if (midiSessionData == null) {
+        Text("No previous session")
+        return
+    }
+
+    Text(
+        DateTimeFormatter.ISO_DATE.format(midiSessionData.start),
+        style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+    )
+    Text(
+        getFormattedDuration(midiSessionData),
+        style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
+    )
+
+
 }

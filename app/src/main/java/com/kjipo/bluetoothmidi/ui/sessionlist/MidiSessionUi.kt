@@ -1,13 +1,5 @@
 package com.kjipo.bluetoothmidi.ui.sessionlist
 
-import android.app.Activity
-import android.bluetooth.BluetoothDevice
-import android.companion.CompanionDeviceManager
-import android.content.IntentSender
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.Button
@@ -94,7 +86,6 @@ fun MidiSessionUi(
 //        })
 
 
-
     Column {
         Row {
             sessionDataUi.storedSessions.forEach { midiSessionData ->
@@ -176,18 +167,14 @@ fun SessionEntry(@PreviewParameter(SessionEntryDataProvider::class) sessionEntry
                             .padding(top = 4.dp, bottom = 2.dp)
                     ) {
                         Column {
-                            Row {
-                                Text(
-                                    DateTimeFormatter.ISO_DATE.format(sessionEntryData.midiSessionData.start),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                            Row {
-                                Text(
-                                    getFormattedDuration(sessionEntryData),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
+                            Text(
+                                DateTimeFormatter.ISO_DATE.format(sessionEntryData.midiSessionData.start),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                getFormattedDuration(sessionEntryData.midiSessionData),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                         Column {
                             IconButton(
@@ -252,12 +239,13 @@ private fun toTwoDigits(value: Int): String {
 }
 
 
-private fun getFormattedDuration(sessionEntryData: SessionEntryData): String {
+fun getFormattedDuration(midiSessionData: MidiSessionData): String {
+    return getFormattedDuration(midiSessionData.start, midiSessionData.stop)
+}
+
+fun getFormattedDuration(start: LocalDateTime, stop: LocalDateTime): String {
     with(
-        Duration.between(
-            sessionEntryData.midiSessionData.start,
-            sessionEntryData.midiSessionData.stop
-        )
+        Duration.between(start, stop)
     ) {
         return "${toTwoDigits(toHoursPartHelper())}:${toTwoDigits(toMinutesPartHelper())}:${
             toTwoDigits(

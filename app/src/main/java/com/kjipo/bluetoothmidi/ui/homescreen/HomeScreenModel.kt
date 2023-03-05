@@ -7,20 +7,29 @@ import androidx.lifecycle.viewModelScope
 import com.kjipo.bluetoothmidi.LAST_CONNECTED_DEVICE_ADDRESS
 import com.kjipo.bluetoothmidi.LAST_CONNECTED_DEVICE_KEY
 import com.kjipo.bluetoothmidi.midi.MidiHandler
+import com.kjipo.bluetoothmidi.session.Session
+import com.kjipo.bluetoothmidi.session.SessionDatabase
+import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 
-class HomeScreenModel(private val midiHandler: MidiHandler, preferences: SharedPreferences) :
+class HomeScreenModel(
+    private val midiHandler: MidiHandler,
+    private val preferences: SharedPreferences,
+    private val sessionDatabase: SessionDatabase
+) :
     ViewModel() {
 
-    private val lastConnectedDevice = preferences.getString(LAST_CONNECTED_DEVICE_KEY, null)
-    private val lastConnectedDeviceAddress =
-        preferences.getString(LAST_CONNECTED_DEVICE_ADDRESS, null)
+    private var lastConnectedDevice: String? = null
+    private var lastConnectedDeviceAddress: String? = null
 
     private val viewModelState = MutableStateFlow(HomeScreenModelUiState(lastConnectedDevice ?: ""))
 
@@ -29,8 +38,33 @@ class HomeScreenModel(private val midiHandler: MidiHandler, preferences: SharedP
 
     init {
         Timber.tag("Bluetooth").i("Last connected device address: $lastConnectedDeviceAddress")
+        loadData()
     }
 
+    fun loadData() {
+        lastConnectedDevice = preferences.getString(LAST_CONNECTED_DEVICE_KEY, null)
+        lastConnectedDeviceAddress = preferences.getString(LAST_CONNECTED_DEVICE_ADDRESS, null)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            sessionDatabase.sessionDao().getMostRecentSession()?.let { mostRecentSession ->
+                viewModelState.update {
+                    it.copy(
+                        previousSession = transformToMidiSessionData(
+                            mostRecentSession
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun transformToMidiSessionData(session: Session): MidiSessionData {
+        return MidiSessionData(
+            session.uid,
+            LocalDateTime.ofInstant(session.start, ZoneId.systemDefault()),
+            LocalDateTime.ofInstant(session.sessionEnd, ZoneId.systemDefault())
+        )
+    }
 
     fun connectedToLastConnectedDevice() {
         if (lastConnectedDevice == null) {
@@ -67,12 +101,13 @@ class HomeScreenModel(private val midiHandler: MidiHandler, preferences: SharedP
 
         fun provideFactory(
             midiHandler: MidiHandler,
-            preferences: SharedPreferences
+            preferences: SharedPreferences,
+            sessionDatabase: SessionDatabase
         ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return HomeScreenModel(midiHandler, preferences) as T
+                    return HomeScreenModel(midiHandler, preferences, sessionDatabase) as T
                 }
             }
     }
@@ -82,5 +117,6 @@ class HomeScreenModel(private val midiHandler: MidiHandler, preferences: SharedP
 data class HomeScreenModelUiState(
     val previouslyConnectedDevice: String = "",
     val isConnecting: Boolean = false,
-    val connected: Boolean = false
+    val connected: Boolean = false,
+    val previousSession: MidiSessionData? = null
 )

@@ -60,19 +60,12 @@ class ConnectRouteInputHolderProvider : PreviewParameterProvider<MidiSessionRout
 fun MidiSessionRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) midiSessionRouteInputHolder: MidiSessionRouteInputHolder) {
 
     Column {
-        Row {
-            Text("Connected: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.connected}")
-        }
-        Row {
-            Text("Number of received messages: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
-        }
-        Row {
-            if(midiSessionRouteInputHolder.midiDeviceConnectUiState.closingSession) {
-                Text("Closing session")
-            }
-            else {
-                Text("Session duration: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.sessionDurationInSeconds}")
-            }
+        Text("Connected: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.connected}")
+        Text("Number of received messages: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.numberOfReceivedMessages}")
+        if (midiSessionRouteInputHolder.midiDeviceConnectUiState.closingSession) {
+            Text("Closing session")
+        } else {
+            Text("Session duration: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.sessionDurationInSeconds}")
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             Button(onClick = midiSessionRouteInputHolder.saveSessionCallback) {

@@ -3,12 +3,9 @@ package com.kjipo.bluetoothmidi.ui.sessionview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.kjipo.bluetoothmidi.session.MidiSessionRepository
-import com.kjipo.bluetoothmidi.session.Session
 import com.kjipo.bluetoothmidi.session.SessionDao
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.time.Instant
 
 
@@ -18,7 +15,9 @@ class SessionViewModel(private val sessionId: Long, private val sessionDao: Sess
     private val viewModelState = MutableStateFlow(SessionUiState())
 
     val uiState =
-        viewModelState.stateIn(viewModelScope, SharingStarted.Eagerly, viewModelState.value)
+        viewModelState.stateIn(viewModelScope,
+            SharingStarted.Eagerly,
+            viewModelState.value)
 
     init {
         viewModelScope.launch {

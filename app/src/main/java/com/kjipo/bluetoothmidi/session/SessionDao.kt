@@ -34,4 +34,7 @@ interface SessionDao {
     @Query("SELECT * FROM session WHERE uid IN (:sessionIds)")
     suspend fun getSessionsWithMessages(sessionIds: Collection<Long>): List<SessionWithMessages>
 
+    @Query("SELECT * FROM session WHERE session.stop != null ORDER BY session.stop LIMIT 1")
+    fun getMostRecentSession(): Session?
+
 }

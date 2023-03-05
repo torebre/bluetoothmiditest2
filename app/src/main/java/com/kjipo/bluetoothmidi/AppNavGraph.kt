@@ -17,7 +17,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -33,16 +32,15 @@ import com.kjipo.bluetoothmidi.midi.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.session.SessionDatabase
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
-import com.kjipo.bluetoothmidi.ui.midiplay.PlayMidi
 import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceList
 import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceListInput
+import com.kjipo.bluetoothmidi.ui.midiplay.PlayMidi
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUi
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUiInput
 import com.kjipo.bluetoothmidi.ui.sessionview.SessionScreenRoute
 import com.kjipo.bluetoothmidi.ui.sessionview.SessionViewModel
 import timber.log.Timber
 import java.io.File
-import java.util.zip.ZipFile
 
 enum class NavigationDestinations {
     HOME,
@@ -159,7 +157,8 @@ fun AppNavGraph(
                 viewModelStoreOwner = it,
                 factory = HomeScreenModel.provideFactory(
                     midiHandler,
-                    mainActivity.getPreferences(Context.MODE_PRIVATE)
+                    mainActivity.getPreferences(Context.MODE_PRIVATE),
+                    sessionDatabase
                 )
             )
 
