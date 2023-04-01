@@ -57,7 +57,8 @@ fun BluetoothMidiApp(
                     sessionDatabase = appContainer.sessionDatabase,
                     deviceScanner = appContainer.deviceScanner,
                     midiHandler = appContainer.midiHandler,
-                    midiSessionRepository = appContainer.midiSessionRepository
+                    midiSessionRepository = appContainer.midiSessionRepository,
+                    earTrainer = appContainer.earTrainer
                 )
             }
         }

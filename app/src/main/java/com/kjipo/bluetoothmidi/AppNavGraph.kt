@@ -27,6 +27,7 @@ import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
 import com.kjipo.bluetoothmidi.connect.MidiSessionViewModel
 import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
+import com.kjipo.bluetoothmidi.midi.EarTrainer
 import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.midi.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
@@ -143,7 +144,8 @@ fun AppNavGraph(
     deviceScanner: DeviceScanner,
     midiHandler: MidiHandler,
     midiSessionRepository: MidiSessionRepository,
-    sessionDatabase: SessionDatabase
+    sessionDatabase: SessionDatabase,
+    earTrainer: EarTrainer
 ) {
     NavHost(
         navController = navController,
@@ -216,6 +218,7 @@ fun AppNavGraph(
 //                val fileToExportTo = File(directoryToExportTo, "export_file_temp.zip")
                 val fileToExportTo = File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
 
+                // TODO The view model should not have a reference to the activity, something which it gets indirectly here
                 val shareCallback = {
                    val fileUri = FileProvider.getUriForFile(mainActivity.applicationContext, "com.kjipo.bluetoothmidi", fileToExportTo)
 
@@ -233,7 +236,7 @@ fun AppNavGraph(
 
         composable(NavigationDestinations.MIDI_PLAY.name) {
             val midiPlayViewModel: PlayViewModel =
-                viewModel(factory = PlayViewModel.provideFactory(midiHandler))
+                viewModel(factory = PlayViewModel.provideFactory(midiHandler, earTrainer))
             PlayMidi(onClickPlay = { midiPlayViewModel.play() })
         }
 

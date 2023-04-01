@@ -3,6 +3,8 @@ package com.kjipo.bluetoothmidi
 import android.content.Context
 import androidx.room.Room
 import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
+import com.kjipo.bluetoothmidi.midi.EarTrainer
+import com.kjipo.bluetoothmidi.midi.EarTrainerImpl
 import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.session.MidiSessionRepositoryImpl
@@ -18,6 +20,8 @@ interface AppContainer {
     val midiHandler: MidiHandler
 
     val midiSessionRepository: MidiSessionRepository
+
+    val earTrainer: EarTrainer
 
 }
 
@@ -46,5 +50,8 @@ class AppContainerImpl(private val applicationContext: Context) : AppContainer {
         MidiHandler(applicationContext)
     }
 
+    override val earTrainer: EarTrainer by lazy {
+        EarTrainerImpl()
+    }
 
 }
