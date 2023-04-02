@@ -17,25 +17,23 @@ import kotlin.collections.ArrayList
 class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer: EarTrainer) :
     ViewModel() {
 
-    private val inputByteBuffer = ByteArray(3)
+    private val viewModelState = MutableStateFlow(PlayViewModelState(PlayState.WAITING))
 
-    private val viewModelState = MutableStateFlow(PlayViewModelState(false))
-
-    private val receivedMessages: MutableList<MidiMessage> = Collections.synchronizedList(ArrayList<MidiMessage>())
-
+    private val receivedMessages: MutableList<MidiMessage> =
+        Collections.synchronizedList(ArrayList<MidiMessage>())
 
 
     init {
         viewModelScope.launch {
-            midiHandler.connectToOutputPort(getMidiReceiver(getMidiMessageTranslator()))
+            midiHandler.connectToOutputPort(getMidiReceiver())
         }
     }
 
     fun play() {
-        viewModelState.update { it.copy(isPlaying = true) }
+        viewModelState.update { it.copy(playState = PlayState.PLAYING) }
         viewModelScope.launch {
             playSequence()
-            viewModelState.update { it.copy(isPlaying = false) }
+            viewModelState.update { it.copy(playState = PlayState.USER_INPUT) }
         }
     }
 
@@ -49,14 +47,14 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 
                 when (midiPlayCommand) {
                     is NoteOn -> {
-                        midiCommand(
+                        sendMidiCommand(
                             MidiConstants.STATUS_NOTE_ON.value,
                             midiPlayCommand.pitch,
                             midiPlayCommand.velocity
                         )
                     }
                     is NoteOff -> {
-                        midiCommand(
+                        sendMidiCommand(
                             MidiConstants.STATUS_NOTE_OFF.value,
                             midiPlayCommand.pitch,
                             midiPlayCommand.velocity
@@ -71,8 +69,12 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 
     }
 
-    private fun midiCommand(status: UByte, data1: Int, data2: Int,
-                            timeStamp: Long = 0) {
+    private fun sendMidiCommand(
+        status: UByte, data1: Int, data2: Int,
+        timeStamp: Long = 0
+    ) {
+        val inputByteBuffer = ByteArray(3)
+
         inputByteBuffer[0] = status.toByte()
         inputByteBuffer[1] = data1.toByte()
         inputByteBuffer[2] = data2.toByte()
@@ -80,48 +82,52 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
         midiHandler.send(inputByteBuffer, 3, timeStamp)
     }
 
-    private fun getMidiReceiver(midiMessageTranslator: MidiMessageTranslator): MidiReceiver {
+    private fun getMidiReceiver(): MidiReceiver {
         return object : MidiReceiver() {
             override fun onSend(
-                msg: ByteArray?,
+                message: ByteArray?,
                 offset: Int,
                 count: Int,
                 timestamp: Long
             ) {
+                message?.let { messageBytes ->
+                    Timber.tag("MIDI")
+                        .d("Offset: $offset. Count: $count. Timestamp: $timestamp. Bytes in message: ${messageBytes.joinToString { messageBytes.toString() }}")
 
-                // TODO Handle MIDI message
+                    if (viewModelState.value.playState == PlayState.USER_INPUT) {
+                        translateMidiMessage(
+                            messageBytes.toUByteArray(),
+                            offset,
+                            timestamp
+                        ).apply {
+                            Timber.tag("MIDI").d("Translated MIDI message: $this")
 
-                msg?.let { messageBytes ->
-                    Timber.d("Offset: $offset. Count: $count. Timestamp: $timestamp. Bytes in message: ${messageBytes.joinToString { messageBytes.toString() }}")
-                    midiMessageTranslator.onSend(msg, offset, count, timestamp)
+                            if (isStopUserInputCommand(this)) {
+                                viewModelState.update { it.copy(playState = PlayState.WAITING) }
+                                earTrainer.userInputSequence(receivedMessages.toList())
+                                receivedMessages.clear()
+                            }
+                            else {
+                                receivedMessages.add(this)
+                            }
+                        }
+                    }
                 }
-
-                // TODO Need to collect messages and send them to EarTrainer
-
             }
         }
     }
 
-    private fun getMidiMessageTranslator(): MidiMessageTranslator {
-        return MidiMessageTranslator(object : MidiMessageHandler {
+    private fun isStopUserInputCommand(midiMessage: MidiMessage) =
+        midiMessage.midiCommand == MidiCommand.NoteOn && midiMessage.splitMidiData()
+            .let { it.isNotEmpty() && it[0] == "21" }
 
-            override fun send(msg: UByteArray, offset: Int, count: Int, timestamp: Long) {
-                val translatedMidiMessage = translateMidiMessage(msg, offset, timestamp)
-                viewModelScope.launch {
-                    receivedMessages.add(translatedMidiMessage)
-                }
-            }
-
-            override fun close() {
-                TODO("Not yet implemented")
-            }
-
-        })
-    }
 
     companion object {
 
-        fun provideFactory(midiHandler: MidiHandler, earTrainer: EarTrainer): ViewModelProvider.Factory =
+        fun provideFactory(
+            midiHandler: MidiHandler,
+            earTrainer: EarTrainer
+        ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -133,15 +139,21 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 }
 
 
+enum class PlayState {
+    PLAYING,
+    USER_INPUT,
+    WAITING
+}
+
 private data class PlayViewModelState(
-    val isPlaying: Boolean
+    val playState: PlayState
 ) {
 
     fun toUiState(): PlayViewUiState {
-        return PlayViewUiState(isPlaying)
+        return PlayViewUiState(playState)
     }
 
 }
 
 
-data class PlayViewUiState(val isPlaying: Boolean)
+data class PlayViewUiState(val playState: PlayState)

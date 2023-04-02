@@ -1,5 +1,7 @@
 package com.kjipo.bluetoothmidi.midi
 
+import timber.log.Timber
+
 
 class EarTrainerImpl : EarTrainer {
 
@@ -16,6 +18,14 @@ class EarTrainerImpl : EarTrainer {
             Sleep(3000),
             NoteOff(70, 127)
         )
+    }
+
+    override fun userInputSequence(receivedMidiMessages: List<MidiMessage>) {
+        Timber.tag("EarTrainer").d("Received MIDI messages")
+        // TODO See how well user was able to reproduce sequence
+        receivedMidiMessages.forEach {
+            Timber.tag("EarTrainer").d("MIDI message: $it")
+        }
     }
 
 }

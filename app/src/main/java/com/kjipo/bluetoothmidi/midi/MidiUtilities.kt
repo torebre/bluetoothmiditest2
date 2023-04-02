@@ -31,8 +31,6 @@ fun translateMidiMessage(data: UByteArray, inputOffset: Int, timestamp: Long): M
     val statusByte = data[offset++]
     val status = statusByte.toInt()
 
-    Timber.i("Status byte: $statusByte. Status: $status")
-
     val statusAsString = getName(status)
     val numData = getBytesPerMessage(statusByte.toInt()) - 1
     val channel = if (status in 0x80..0xef) {

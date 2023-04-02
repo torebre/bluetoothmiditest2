@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.time.Instant
 
 @OptIn(ExperimentalUnsignedTypes::class)
@@ -78,17 +77,13 @@ class MidiSessionViewModel(
     private fun getMidiReceiver(midiMessageTranslator: MidiMessageTranslator): MidiReceiver {
         return object : MidiReceiver() {
             override fun onSend(
-                msg: ByteArray?,
+                message: ByteArray?,
                 offset: Int,
                 count: Int,
                 timestamp: Long
             ) {
-
-                // TODO Handle MIDI message
-
-                msg?.let { messageBytes ->
-                    Timber.d("Offset: $offset. Count: $count. Timestamp: $timestamp. Bytes in message: ${messageBytes.joinToString { messageBytes.toString() }}")
-                    midiMessageTranslator.onSend(msg, offset, count, timestamp)
+                message?.let { it ->
+                    midiMessageTranslator.onSend(it, offset, count, timestamp)
                 }
 
                 viewModelState.update {

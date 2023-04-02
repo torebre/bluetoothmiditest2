@@ -5,4 +5,8 @@ data class MidiMessage(
     val midiData: String,
     val channel: Int?,
     val timestamp: Long
-) : java.io.Serializable
+) : java.io.Serializable {
+
+    fun splitMidiData() = midiData.split(",")
+
+}
