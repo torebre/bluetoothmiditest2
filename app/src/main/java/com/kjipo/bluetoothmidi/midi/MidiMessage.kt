@@ -9,4 +9,9 @@ data class MidiMessage(
 
     fun splitMidiData() = midiData.split(",")
 
+    override fun toString(): String {
+        return "MidiMessage(midiCommand=$midiCommand, midiData='$midiData', channel=$channel, timestamp=$timestamp)"
+    }
+
+
 }

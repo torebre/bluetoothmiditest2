@@ -29,7 +29,7 @@ import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
 import com.kjipo.bluetoothmidi.midi.EarTrainer
 import com.kjipo.bluetoothmidi.midi.MidiHandler
-import com.kjipo.bluetoothmidi.midi.PlayViewModel
+import com.kjipo.bluetoothmidi.ui.midiplay.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.session.SessionDatabase
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
@@ -237,7 +237,7 @@ fun AppNavGraph(
         composable(NavigationDestinations.MIDI_PLAY.name) {
             val midiPlayViewModel: PlayViewModel =
                 viewModel(factory = PlayViewModel.provideFactory(midiHandler, earTrainer))
-            PlayMidi(onClickPlay = { midiPlayViewModel.play() })
+            PlayMidi(midiPlayViewModel)
         }
 
         composable(
