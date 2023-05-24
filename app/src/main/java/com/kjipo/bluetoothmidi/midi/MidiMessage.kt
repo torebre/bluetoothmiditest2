@@ -7,7 +7,7 @@ data class MidiMessage(
     val timestamp: Long
 ) : java.io.Serializable {
 
-    fun splitMidiData() = midiData.split(",")
+    fun splitMidiData() = midiData.split(",").map { it.trim() }
 
     override fun toString(): String {
         return "MidiMessage(midiCommand=$midiCommand, midiData='$midiData', channel=$channel, timestamp=$timestamp)"
