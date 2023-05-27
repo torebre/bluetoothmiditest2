@@ -39,7 +39,7 @@ android {
         viewBinding true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.3.1'
+        kotlinCompilerExtensionVersion '1.4.3'
     }
     namespace 'com.kjipo.bluetoothmidi'
 
@@ -54,26 +54,27 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
+    def compose_version = "1.4.3"
 
     // Integration with activities
     implementation 'androidx.activity:activity-compose:1.6.1'
     // Compose Material Design
-    implementation 'androidx.compose.material:material:1.3.0'
+    implementation "androidx.compose.material:material:$compose_version"
     // Animations
-    implementation 'androidx.compose.animation:animation:1.3.0'
+    implementation "androidx.compose.animation:animation:$compose_version"
     // Tooling support (Previews, etc.)
-    implementation 'androidx.compose.ui:ui-tooling:1.3.0'
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
     // Integration with ViewModels
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1'
     implementation 'androidx.test:core-ktx:1.5.0'
-    implementation 'androidx.test.ext:junit-ktx:1.1.4'
+    implementation 'androidx.test.ext:junit-ktx:1.1.5'
 
     def nav_version = "2.5.3"
 
     implementation("androidx.navigation:navigation-compose:$nav_version")
 
-    implementation("androidx.compose.material3:material3:1.1.0-alpha01")
-    implementation("androidx.compose.material3:material3-window-size-class:1.1.0-alpha01")
+    implementation("androidx.compose.material3:material3:1.2.0-alpha02")
+    implementation("androidx.compose.material3:material3-window-size-class:1.2.0-alpha02")
 
     implementation "com.google.accompanist:accompanist-permissions:0.27.0"
 
@@ -88,7 +89,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
 
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 
     def androidx_test_version = "1.5.0"
 
@@ -96,15 +97,15 @@ dependencies {
     androidTestImplementation "androidx.test:runner:$androidx_test_version"
     androidTestImplementation "androidx.test:rules:$androidx_test_version"
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.0'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+//    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
 
     // Optional -- UI testing with UI Automator
 //    androidTestImplementation "androidx.test.uiautomator:uiautomator:2.2.0"
     // Optional -- UI testing with Compose
 //    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.3.1"
 
-    def room_version = "2.4.3"
+    def room_version = "2.5.1"
 
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
@@ -121,5 +122,11 @@ dependencies {
 //    ksp "androidx.room:room-compiler:$room_version"
 
 //    androidTestImplementation 'org.hamcrest:hamcrest-all:1.3'
+
+    // Test rules and transitive dependencies:
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
+// Needed for createAndroidComposeRule, but not createComposeRule:
+    debugImplementation("androidx.compose.ui:ui-test-manifest:$compose_version")
+
 
 }

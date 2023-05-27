@@ -6,35 +6,38 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 
 
 @Composable
 fun PlayMidi(playViewModel: PlayViewModel) {
     val uiState = playViewModel.uiState.collectAsState()
-    val numberOfReceivedMessages = remember {
-        uiState.value.numberOfReceivedMessages
-    }
 
     PlayMidi(
-        uiState.value.playState,
+        uiState.value,
         onClickPlay = { playViewModel.play() },
         onClickPlayInput = { playViewModel.playInput() },
-        onClickClearReceivedMessages = { playViewModel.clearReceivedMessages() },
-        numberOfReceivedMessages
+        onClickClearReceivedMessages = { playViewModel.clearReceivedMessages() }
     )
 
 }
 
+
 @Composable
 fun PlayMidi(
-    mode: PlayState,
+    uiState: PlayViewUiState,
     onClickPlay: () -> Unit,
     onClickPlayInput: () -> Unit,
-    onClickClearReceivedMessages: () -> Unit,
-    numberOfReceivedMessages: Int
+    onClickClearReceivedMessages: () -> Unit
 ) {
+    val numberOfReceivedMessages = remember {
+        uiState.numberOfReceivedMessages
+    }
+
     Column {
-        val modeText = when (mode) {
+        val modeText = when (uiState.playState) {
             PlayState.PLAYING -> "Playing"
             PlayState.USER_INPUT -> "User input"
             PlayState.WAITING -> "Waiting"
@@ -43,7 +46,7 @@ fun PlayMidi(
 
         Text("Mode: $modeText")
 
-        Button(onClick = onClickPlay) {
+        Button(modifier = Modifier.semantics { testTag = "play" }, onClick = onClickPlay) {
             Text("Play")
         }
 
