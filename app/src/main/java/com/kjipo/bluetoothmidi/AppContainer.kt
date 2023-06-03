@@ -11,6 +11,7 @@ import com.kjipo.bluetoothmidi.session.MidiSessionRepositoryImpl
 import com.kjipo.bluetoothmidi.session.SessionDatabase
 
 interface AppContainer {
+
     val deviceScanner: DeviceScanner
 
     val bluetoothPairing: BluetoothPairing
@@ -23,10 +24,14 @@ interface AppContainer {
 
     val earTrainer: EarTrainer
 
+    fun destroy()
+
 }
 
 
 class AppContainerImpl(private val applicationContext: Context) : AppContainer {
+    private var internalMidiHandlerReference: MidiHandler? = null
+
     override val deviceScanner: DeviceScanner by lazy {
         DeviceScanner(applicationContext)
     }
@@ -47,11 +52,17 @@ class AppContainerImpl(private val applicationContext: Context) : AppContainer {
     }
 
     override val midiHandler: MidiHandler by lazy {
-        MidiHandler(applicationContext)
+        MidiHandler(applicationContext).also {
+            internalMidiHandlerReference = it
+        }
     }
 
     override val earTrainer: EarTrainer by lazy {
         EarTrainerImpl()
+    }
+
+    override fun destroy() {
+        internalMidiHandlerReference?.close()
     }
 
 }

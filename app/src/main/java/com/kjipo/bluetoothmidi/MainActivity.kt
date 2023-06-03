@@ -17,6 +17,8 @@ import androidx.core.view.WindowCompat
  */
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var appContainer: AppContainer
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         requestPermissions()
 
-        val appContainer = (application as BluetoothMidiApplication).container
+        appContainer = (application as BluetoothMidiApplication).container
         setContent {
             val widthSizeClass = calculateWindowSizeClass(this).widthSizeClass
             BluetoothMidiApp(appContainer, widthSizeClass, this)
@@ -52,5 +54,13 @@ class MainActivity : AppCompatActivity() {
         }.toTypedArray()
 
         ActivityCompat.requestPermissions(this, permissionsToRequest, 2)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        if(isFinishing) {
+            appContainer.destroy()
+        }
     }
 }

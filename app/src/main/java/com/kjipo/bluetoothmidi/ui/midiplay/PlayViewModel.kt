@@ -1,7 +1,6 @@
 package com.kjipo.bluetoothmidi.ui.midiplay
 
 import android.media.midi.MidiReceiver
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -23,24 +22,64 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.*
-import kotlin.collections.ArrayList
 
 
-class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer: EarTrainer) :
+class PlayViewModel(
+    private val midiHandler: MidiHandler,
+    private val earTrainer: EarTrainer
+) :
     ViewModel() {
 
-    private val viewModelState = MutableStateFlow(PlayViewModelState(PlayState.WAITING).toUiState())
+    private val viewModelState =
+        MutableStateFlow(PlayViewModelState(PlayState.USER_INPUT).toUiState())
 
     val uiState =
         viewModelState.stateIn(viewModelScope, SharingStarted.Eagerly, viewModelState.value)
 
     private val receivedMessages: MutableList<MidiMessage> =
-        Collections.synchronizedList(ArrayList<MidiMessage>())
+        Collections.synchronizedList(ArrayList())
+
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    private val midiReceiver = object : MidiReceiver() {
+        override fun onSend(
+            message: ByteArray?,
+            offset: Int,
+            count: Int,
+            timestamp: Long
+        ) {
+            message?.let { messageBytes ->
+                Timber.tag("MIDI")
+                    .d("Offset: $offset. Count: $count. Timestamp: $timestamp. Bytes in message: ${messageBytes.joinToString { it.toString() }}")
+
+                if (viewModelState.value.playState == PlayState.USER_INPUT) {
+                    translateMidiMessage(
+                        messageBytes.toUByteArray(),
+                        offset,
+                        timestamp
+                    ).apply {
+                        Timber.tag("MIDI").d("Translated MIDI message: $this")
+
+                        if (isStopUserInputCommand(this)) {
+                            earTrainer.userInputSequence(receivedMessages.toList())
+                            receivedMessages.clear()
+                            viewModelState.update { it.copy(numberOfReceivedMessages = 0) }
+                        } else {
+                            receivedMessages.add(this)
+                            viewModelState.update { it.copy(numberOfReceivedMessages = it.numberOfReceivedMessages + 1) }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
     init {
         viewModelScope.launch {
-            midiHandler.connectToOutputPort(getMidiReceiver())
+            if (!midiHandler.connectToOutputPort(midiReceiver)) {
+                viewModelState.update { it.copy(playState = PlayState.ERROR) }
+            }
         }
     }
 
@@ -62,7 +101,7 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 
                 when (midiPlayCommand) {
                     is NoteOn -> {
-                        sendMidiCommand(
+                        midiHandler.sendMidiCommand(
                             MidiConstants.STATUS_NOTE_ON.value,
                             midiPlayCommand.pitch,
                             midiPlayCommand.velocity
@@ -70,7 +109,7 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
                     }
 
                     is NoteOff -> {
-                        sendMidiCommand(
+                        midiHandler.sendMidiCommand(
                             MidiConstants.STATUS_NOTE_OFF.value,
                             midiPlayCommand.pitch,
                             midiPlayCommand.velocity
@@ -86,55 +125,6 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 
     }
 
-    private fun sendMidiCommand(
-        status: UByte, data1: Int, data2: Int,
-        timeStamp: Long = 0
-    ) {
-        val inputByteBuffer = ByteArray(3)
-
-        inputByteBuffer[0] = status.toByte()
-        inputByteBuffer[1] = data1.toByte()
-        inputByteBuffer[2] = data2.toByte()
-
-        midiHandler.send(inputByteBuffer, 3, timeStamp)
-    }
-
-    @OptIn(ExperimentalUnsignedTypes::class)
-    private fun getMidiReceiver(): MidiReceiver {
-        return object : MidiReceiver() {
-            override fun onSend(
-                message: ByteArray?,
-                offset: Int,
-                count: Int,
-                timestamp: Long
-            ) {
-                message?.let { messageBytes ->
-                    Timber.tag("MIDI")
-                        .d("Offset: $offset. Count: $count. Timestamp: $timestamp. Bytes in message: ${messageBytes.joinToString { messageBytes.toString() }}")
-
-                    if (viewModelState.value.playState == PlayState.USER_INPUT) {
-                        translateMidiMessage(
-                            messageBytes.toUByteArray(),
-                            offset,
-                            timestamp
-                        ).apply {
-                            Timber.tag("MIDI").d("Translated MIDI message: $this")
-
-                            if (isStopUserInputCommand(this)) {
-                                viewModelState.update { it.copy(playState = PlayState.WAITING) }
-                                earTrainer.userInputSequence(receivedMessages.toList())
-                                receivedMessages.clear()
-                                viewModelState.update { it.copy(numberOfReceivedMessages = 0) }
-                            } else {
-                                receivedMessages.add(this)
-                                viewModelState.update { it.copy(numberOfReceivedMessages = it.numberOfReceivedMessages + 1) }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     private fun isStopUserInputCommand(midiMessage: MidiMessage) =
         midiMessage.midiCommand == MidiCommand.NoteOn && midiMessage.splitMidiData()
@@ -157,15 +147,20 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
                     Timber.tag("MidiPlay")
                         .i("Message: ${receivedMessage.midiCommand}. Timestamp: ${receivedMessage.timestamp}. Data: ${receivedMessage.splitMidiData()}")
 
-                    timeUntilNextMessage = receivedMessage.timestamp - previousMessage.timestamp
-                    if(timeUntilNextMessage > 0) {
+                    // The timestamp in the messages is based on System.nanoTime()
+                    // so need to convert to milliseconds before doing sleep
+                    timeUntilNextMessage = (receivedMessage.timestamp - previousMessage.timestamp) / 1_000_000
+
+                    Timber.tag("MidiPlay").i("Sleep time: $timeUntilNextMessage")
+
+                    if (timeUntilNextMessage > 0) {
                         Thread.sleep(timeUntilNextMessage)
                     }
 
                     when (receivedMessage.midiCommand) {
                         MidiCommand.NoteOn -> {
                             extractPitchAndVelocity(receivedMessage).let { pitchAndVelocity ->
-                                sendMidiCommand(
+                                midiHandler.sendMidiCommand(
                                     MidiConstants.STATUS_NOTE_ON.value,
                                     pitchAndVelocity.pitch,
                                     pitchAndVelocity.velocity
@@ -175,7 +170,7 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 
                         MidiCommand.NoteOff -> {
                             extractPitchAndVelocity(receivedMessage).let { pitchAndVelocity ->
-                                sendMidiCommand(
+                                midiHandler.sendMidiCommand(
                                     MidiConstants.STATUS_NOTE_OFF.value,
                                     pitchAndVelocity.pitch,
                                     pitchAndVelocity.velocity
@@ -184,21 +179,17 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
                         }
 
                         else -> {
-                            Timber.tag("MIDI").w("Unexpected MIDI command: ${receivedMessage.midiCommand.name}")
+                            Timber.tag("MIDI")
+                                .w("Unexpected MIDI command: ${receivedMessage.midiCommand.name}")
                         }
-
                     }
-
                     previousMessage = receivedMessage
                 }
-
-                viewModelState.update { it.copy(playState = PlayState.WAITING) }
+                viewModelState.update { it.copy(playState = PlayState.USER_INPUT) }
             }
         }
     }
 
-
-    private data class PitchAndVelocity(val pitch: Int, val velocity: Int)
 
     private fun extractPitchAndVelocity(midiMessage: MidiMessage): PitchAndVelocity {
         val midiData = midiMessage.splitMidiData()
@@ -208,6 +199,11 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 
     fun clearReceivedMessages() {
         receivedMessages.clear()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        midiHandler.removeFromOutputPort(midiReceiver)
     }
 
 
@@ -231,8 +227,8 @@ class PlayViewModel(private val midiHandler: MidiHandler, private val earTrainer
 enum class PlayState {
     PLAYING,
     USER_INPUT,
-    WAITING,
-    PLAYING_USER_INPUT
+    PLAYING_USER_INPUT,
+    ERROR
 }
 
 private data class PlayViewModelState(
@@ -248,3 +244,5 @@ private data class PlayViewModelState(
 
 
 data class PlayViewUiState(val playState: PlayState, val numberOfReceivedMessages: Int)
+
+private data class PitchAndVelocity(val pitch: Int, val velocity: Int)

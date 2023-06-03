@@ -32,16 +32,13 @@ fun PlayMidi(
     onClickPlayInput: () -> Unit,
     onClickClearReceivedMessages: () -> Unit
 ) {
-    val numberOfReceivedMessages = remember {
-        uiState.numberOfReceivedMessages
-    }
 
     Column {
         val modeText = when (uiState.playState) {
             PlayState.PLAYING -> "Playing"
             PlayState.USER_INPUT -> "User input"
-            PlayState.WAITING -> "Waiting"
             PlayState.PLAYING_USER_INPUT -> "Playing user input"
+            PlayState.ERROR -> "Error"
         }
 
         Text("Mode: $modeText")
@@ -58,8 +55,7 @@ fun PlayMidi(
             Text("Clear received messages")
         }
 
-        Text("Number of received messages: $numberOfReceivedMessages")
-
+        Text("Number of received messages: ${uiState.numberOfReceivedMessages}")
 
     }
 
