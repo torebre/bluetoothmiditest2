@@ -13,7 +13,6 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BluetoothMidiApp(
     appContainer: AppContainer,
