@@ -1,4 +1,4 @@
-package com.kjipo.bluetoothmidi.bluetooth
+package com.kjipo.bluetoothmidi.ui.mididevicelist
 
 import android.companion.AssociationRequest
 import android.companion.BluetoothDeviceFilter
@@ -14,7 +14,7 @@ import timber.log.Timber
 import java.util.*
 
 
-class BluetoothPairing(private val context: Context) {
+class BluetoothHandler(private val context: Context) {
 
     private val deviceManager: CompanionDeviceManager by lazy {
         getSystemService(context, CompanionDeviceManager::class.java) as CompanionDeviceManager

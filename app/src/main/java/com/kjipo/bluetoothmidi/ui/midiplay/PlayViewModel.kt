@@ -9,6 +9,7 @@ import com.kjipo.bluetoothmidi.midi.MidiCommand
 import com.kjipo.bluetoothmidi.midi.MidiConstants
 import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.midi.MidiMessage
+import com.kjipo.bluetoothmidi.midi.MidiPlayCommand
 import com.kjipo.bluetoothmidi.midi.NoteOff
 import com.kjipo.bluetoothmidi.midi.NoteOn
 import com.kjipo.bluetoothmidi.midi.Sleep
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.IOException
 import java.util.*
 
 
@@ -92,37 +94,45 @@ class PlayViewModel(
     }
 
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     private suspend fun playSequence() {
         // Will send on channel 0
         withContext(Dispatchers.IO) {
             for (midiPlayCommand in earTrainer.getCurrentSequence()) {
-                Timber.tag("MIDI").d("Processing command: $midiPlayCommand")
-
-                when (midiPlayCommand) {
-                    is NoteOn -> {
-                        midiHandler.sendMidiCommand(
-                            MidiConstants.STATUS_NOTE_ON.value,
-                            midiPlayCommand.pitch,
-                            midiPlayCommand.velocity
-                        )
-                    }
-
-                    is NoteOff -> {
-                        midiHandler.sendMidiCommand(
-                            MidiConstants.STATUS_NOTE_OFF.value,
-                            midiPlayCommand.pitch,
-                            midiPlayCommand.velocity
-                        )
-                    }
-
-                    is Sleep -> {
-                        Thread.sleep(midiPlayCommand.sleepInMilliseconds)
-                    }
+                try {
+                    processMidiPlayCommand(midiPlayCommand)
+                } catch (exception: IOException) {
+                    Timber.tag("MIDI").e(exception)
                 }
             }
         }
 
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    private fun processMidiPlayCommand(midiPlayCommand: MidiPlayCommand) {
+        Timber.tag("MIDI").d("Processing command: $midiPlayCommand")
+
+        when (midiPlayCommand) {
+            is NoteOn -> {
+                midiHandler.sendMidiCommand(
+                    MidiConstants.STATUS_NOTE_ON.value,
+                    midiPlayCommand.pitch,
+                    midiPlayCommand.velocity
+                )
+            }
+
+            is NoteOff -> {
+                midiHandler.sendMidiCommand(
+                    MidiConstants.STATUS_NOTE_OFF.value,
+                    midiPlayCommand.pitch,
+                    midiPlayCommand.velocity
+                )
+            }
+
+            is Sleep -> {
+                Thread.sleep(midiPlayCommand.sleepInMilliseconds)
+            }
+        }
     }
 
 
@@ -149,7 +159,8 @@ class PlayViewModel(
 
                     // The timestamp in the messages is based on System.nanoTime()
                     // so need to convert to milliseconds before doing sleep
-                    timeUntilNextMessage = (receivedMessage.timestamp - previousMessage.timestamp) / 1_000_000
+                    timeUntilNextMessage =
+                        (receivedMessage.timestamp - previousMessage.timestamp) / 1_000_000
 
                     Timber.tag("MidiPlay").i("Sleep time: $timeUntilNextMessage")
 

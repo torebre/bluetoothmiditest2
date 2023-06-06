@@ -11,7 +11,8 @@ import android.media.midi.MidiOutputPort
 import android.media.midi.MidiReceiver
 import timber.log.Timber
 
-class MidiHandler(private val applicationContext: Context) : OnDeviceOpenedListener {
+class MidiHandler(private val bluetoothManager: BluetoothManager,
+                  private val midiManager: MidiManager) : OnDeviceOpenedListener {
     private var midiDeviceNullable: MidiDevice? = null
     private var inputPort: MidiInputPort? = null
     private var outputPort: MidiOutputPort? = null
@@ -26,8 +27,8 @@ class MidiHandler(private val applicationContext: Context) : OnDeviceOpenedListe
             throw IllegalStateException("MIDI device already opened")
         }
 
-        val bluetoothManager =
-            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+//        val bluetoothManager =
+//            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
         val deviceToOpen =
             bluetoothManager.adapter.bondedDevices.firstOrNull { it.address == address }
@@ -35,8 +36,8 @@ class MidiHandler(private val applicationContext: Context) : OnDeviceOpenedListe
         Timber.tag("MIDI").i("Device to open: $deviceToOpen")
 
         if (deviceToOpen != null) {
-            val midiManager =
-                applicationContext.getSystemService(Context.MIDI_SERVICE) as MidiManager
+//            val midiManager =
+//                applicationContext.getSystemService(Context.MIDI_SERVICE) as MidiManager
 
             midiManager.openBluetoothDevice(
                 deviceToOpen,

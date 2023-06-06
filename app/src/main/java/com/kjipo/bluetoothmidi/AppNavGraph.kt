@@ -5,12 +5,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.Button
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,19 +19,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.permissions.*
-import com.kjipo.bluetoothmidi.bluetooth.BluetoothConnect
-import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
+import com.kjipo.bluetoothmidi.ui.mididevicelist.BluetoothConnect
+import com.kjipo.bluetoothmidi.ui.mididevicelist.BluetoothHandler
 import com.kjipo.bluetoothmidi.connect.MidiSessionViewModel
-import com.kjipo.bluetoothmidi.devicelist.DeviceListViewModel
-import com.kjipo.bluetoothmidi.devicelist.MidiDevicesUiState
+import com.kjipo.bluetoothmidi.ui.mididevicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.midi.EarTrainer
 import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.ui.midiplay.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.session.SessionDatabase
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
-import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceList
-import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceListInput
+import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceListRoute
 import com.kjipo.bluetoothmidi.ui.midiplay.PlayMidi
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUi
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUiInput
@@ -48,7 +43,8 @@ enum class NavigationDestinations {
     DEVICE_LIST,
     MIDI_RECORD,
     MIDI_PLAY,
-    SCAN2,
+
+    //    SCAN2,
     MIDI_SESSION_LIST,
     SESSION_VIEW
 }
@@ -80,15 +76,16 @@ class NavigationActions(navController: NavHostController) {
         }
     }
 
-    val navigateToScan: () -> Unit = {
-        navController.navigate(NavigationDestinations.SCAN2.name) {
-            popUpTo(navController.graph.findStartDestination().id) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
-        }
-    }
+    // TODO
+//    val navigateToScan: () -> Unit = {
+//        navController.navigate(NavigationDestinations.SCAN2.name) {
+//            popUpTo(navController.graph.findStartDestination().id) {
+//                saveState = true
+//            }
+//            launchSingleTop = true
+//            restoreState = true
+//        }
+//    }
 
     val navigateToMidiRecord: () -> Unit = {
         navController.navigate(NavigationDestinations.MIDI_RECORD.name) {
@@ -159,33 +156,25 @@ fun AppNavGraph(
                 viewModelStoreOwner = it,
                 factory = HomeScreenModel.provideFactory(
                     midiHandler,
-                    mainActivity.getPreferences(Context.MODE_PRIVATE),
                     sessionDatabase
                 )
             )
 
             HomeRoute(homeScreenViewModel)
         }
+
         composable(NavigationDestinations.DEVICE_LIST.name) {
-            val bluetoothPermissionState = if (Build.VERSION.SDK_INT <= 30) {
-                rememberPermissionState(Manifest.permission.BLUETOOTH)
-            } else {
-                rememberPermissionState(Manifest.permission.BLUETOOTH_CONNECT)
-            }
             val deviceListModel: DeviceListViewModel =
                 viewModel(
                     factory = DeviceListViewModel.provideFactory(
-                        deviceScanner, midiHandler, mainActivity.getPreferences(
-                            Context.MODE_PRIVATE
-                        )
+                        deviceScanner, midiHandler
                     )
                 )
+
             MidiDeviceListRoute(
-                deviceListModel, {
-                    deviceListModel.connectToDevice(it)
-                },
-                bluetoothPermissionState
-            )
+                deviceListModel, { address, sharedPreferences ->
+                    deviceListModel.connectToDevice(address, sharedPreferences)
+                })
         }
         composable(
             NavigationDestinations.MIDI_RECORD.name
@@ -202,9 +191,10 @@ fun AppNavGraph(
                 navigateToHome()
             }
         }
-        composable(NavigationDestinations.SCAN2.name) {
-            BluetoothConnect(bluetoothPairing = BluetoothPairing(mainActivity))
-        }
+        // TODO
+//        composable(NavigationDestinations.SCAN2.name) {
+//            BluetoothConnect(bluetoothPairing = BluetoothHandler(mainActivity))
+//        }
         composable(
             NavigationDestinations.MIDI_SESSION_LIST.name
         ) {
@@ -216,11 +206,16 @@ fun AppNavGraph(
             ) { sessionIds ->
 //                val directoryToExportTo = File(mainActivity.applicationContext.cacheDir) //, "export_files")
 //                val fileToExportTo = File(directoryToExportTo, "export_file_temp.zip")
-                val fileToExportTo = File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
+                val fileToExportTo =
+                    File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
 
                 // TODO The view model should not have a reference to the activity, something which it gets indirectly here
                 val shareCallback = {
-                   val fileUri = FileProvider.getUriForFile(mainActivity.applicationContext, "com.kjipo.bluetoothmidi", fileToExportTo)
+                    val fileUri = FileProvider.getUriForFile(
+                        mainActivity.applicationContext,
+                        "com.kjipo.bluetoothmidi",
+                        fileToExportTo
+                    )
 
                     val shareIntent = Intent().apply {
                         action = Intent.ACTION_SEND
@@ -261,76 +256,3 @@ fun AppNavGraph(
 
 }
 
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun MidiDeviceListRoute(
-    deviceListViewModel: DeviceListViewModel,
-    connect: (String) -> Unit,
-    bluetoothPermissionState: PermissionState
-) {
-    val uiState by deviceListViewModel.uiState.collectAsState()
-
-    MidiDeviceListRoute(
-        uiState,
-        toggleScan = {
-            deviceListViewModel.toggleScan()
-        },
-        connect = connect,
-        bluetoothPermissionState
-    )
-}
-
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun MidiDeviceListRoute(
-    uiState: MidiDevicesUiState,
-    toggleScan: () -> Unit,
-    connect: (String) -> Unit,
-    bluetoothPermissionState: PermissionState
-) {
-    val selectedDevice = remember {
-        mutableStateOf("address")
-    }
-
-    Column {
-        when (bluetoothPermissionState.status) {
-            is PermissionStatus.Granted -> {
-                Text("Bluetooth connect granted")
-            }
-            is PermissionStatus.Denied -> {
-                Row {
-                    if (bluetoothPermissionState.status.shouldShowRationale) {
-                        Text("Need Bluetooth connect permission")
-                    } else {
-                        Text("Bluetooth connect permission has been denied")
-                    }
-                }
-
-                Row {
-                    Button(onClick = {
-                        bluetoothPermissionState.launchPermissionRequest()
-                    }) {
-                        Text("Request permission")
-                    }
-
-                }
-            }
-        }
-
-        Row {
-            MidiDeviceList(
-                MidiDeviceListInput(
-                    toggleScan,
-                    uiState.isScanning,
-                    connect,
-                    uiState.foundDevices,
-                    selectedDevice,
-                    uiState.connectedDeviceAddress
-                )
-            )
-        }
-    }
-
-}

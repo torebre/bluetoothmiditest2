@@ -1,5 +1,6 @@
 package com.kjipo.bluetoothmidi
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -9,11 +10,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModelUiState
+import com.kjipo.bluetoothmidi.ui.homescreen.HomeState
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionData
 import com.kjipo.bluetoothmidi.ui.sessionlist.getFormattedDuration
 import java.time.LocalDateTime
@@ -25,38 +28,41 @@ fun HomeRoute(homeScreenModel: HomeScreenModel) {
     val uiState by homeScreenModel.uiState.collectAsState()
 
     HomeRouteScreen(
-        homeRouteScreenInput = HomeRouteScreenInput(
-            uiState,
-            { homeScreenModel.connectedToLastConnectedDevice() })
+        uiState,
+        { address -> homeScreenModel.attemptConnectToPreviouslyConnectedDevice(address) }
     )
 
 }
 
-class HomeRouteScreenInput(
-    val homeScreenModelUiState: HomeScreenModelUiState,
-    val connectedToLastConnectedDevice: () -> Unit
-)
 
-class HomeRouteScreenInputParameterProvider : PreviewParameterProvider<HomeRouteScreenInput> {
-
-    override val values = sequenceOf(HomeRouteScreenInput(
-        HomeScreenModelUiState(
-            "Test",
-            previousSession = MidiSessionData(
-                1,
-                LocalDateTime.now().minusDays(1),
-                LocalDateTime.now()
-            )
-        )
-    ) {
-        // Do nothing
-    })
-
+@Composable
+fun AttemptConnection(
+    homeScreenModelUiState: HomeScreenModelUiState,
+    connectedToLastConnectedDevice: (String) -> Unit
+) {
+    if (homeScreenModelUiState.state == HomeState.STARTING) {
+        LocalContext.current.applicationContext.getSharedPreferences(
+            PREFERENCES_KEY, Context.MODE_PRIVATE
+        ).getString(LAST_CONNECTED_DEVICE_ADDRESS, null)?.let {
+            connectedToLastConnectedDevice(it)
+        }
+    }
 }
 
-@Preview
 @Composable
-fun HomeRouteScreen(@PreviewParameter(HomeRouteScreenInputParameterProvider::class) homeRouteScreenInput: HomeRouteScreenInput) {
+fun HomeRouteScreen(
+    homeScreenModelUiState: HomeScreenModelUiState,
+    connectedToLastConnectedDevice: (String) -> Unit
+) {
+    AttemptConnection(
+        homeScreenModelUiState = homeScreenModelUiState,
+        connectedToLastConnectedDevice = connectedToLastConnectedDevice
+    )
+
+    val lastConnectedDevice = LocalContext.current.applicationContext.getSharedPreferences(
+        PREFERENCES_KEY, Context.MODE_PRIVATE
+    ).getString(LAST_CONNECTED_DEVICE_KEY, null)
+
     Column {
         Text(
             text = "Home screen",
@@ -66,28 +72,14 @@ fun HomeRouteScreen(@PreviewParameter(HomeRouteScreenInputParameterProvider::cla
             color = Color.Black
         )
         Text(
-            text = "Previously connected device: ${homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice} (${homeRouteScreenInput.homeScreenModelUiState.connected})",
+            text = "Previously connected device: $lastConnectedDevice",
             modifier = Modifier
                 .fillMaxWidth(),
             style = MaterialTheme.typography.h6,
             color = Color.Black
         )
 
-        PreviousSession(midiSessionData = homeRouteScreenInput.homeScreenModelUiState.previousSession)
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Button(
-                onClick = homeRouteScreenInput.connectedToLastConnectedDevice,
-                enabled = homeRouteScreenInput.homeScreenModelUiState.previouslyConnectedDevice.isNotEmpty()
-            ) {
-                Text(
-                    text = "Connect",
-                )
-            }
-        }
+        PreviousSession(midiSessionData = homeScreenModelUiState.previousSession)
 
     }
 }

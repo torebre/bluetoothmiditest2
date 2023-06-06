@@ -39,7 +39,7 @@ fun BluetoothMidiApp(
                     navigateToMidiDevices = navigationActions.navigateToDevices,
                     navigateToMidiRecord = navigationActions.navigateToMidiRecord,
                     navigateToMidiPlay = navigationActions.navigateToMidiPlay,
-                    navigateToScan = navigationActions.navigateToScan,
+//                    navigateToScan = navigationActions.navigateToScan,
                     closeDrawer = { coroutineScope.launch { sizeAwareDrawerState.close() } },
                     navigateToSessionList = navigationActions.navigateToSessionList
                 )
@@ -55,7 +55,7 @@ fun BluetoothMidiApp(
                     mainActivity = activity,
                     sessionDatabase = appContainer.sessionDatabase,
                     deviceScanner = appContainer.deviceScanner,
-                    midiHandler = appContainer.midiHandler,
+                    midiHandler = appContainer.getMidiHandler(),
                     midiSessionRepository = appContainer.midiSessionRepository,
                     earTrainer = appContainer.earTrainer
                 )

@@ -1,5 +1,7 @@
 package com.kjipo.bluetoothmidi.ui.mididevicelist
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.selection.selectable
@@ -8,68 +10,42 @@ import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.Dp
 import com.kjipo.bluetoothmidi.BluetoothDeviceData
+import com.kjipo.bluetoothmidi.PREFERENCES_KEY
 import timber.log.Timber
 
 
-class MidiDeviceListInput(
-    val toggleScan: () -> Unit,
-    val isScanning: Boolean,
-    val connect: (String) -> Unit,
-    val foundDevices: List<BluetoothDeviceData>,
-    val selectedDevice: MutableState<String>,
-    val connectedDeviceAddress: String?
-)
-
-class MidiDeviceListDataProvider : PreviewParameterProvider<MidiDeviceListInput> {
-
-    override val values = sequenceOf(
-        MidiDeviceListInput(
-            {
-                // Do nothing
-            },
-            true,
-            {
-                // Do nothing
-            },
-            listOf(
-                BluetoothDeviceData("Test device", "1", 1),
-                BluetoothDeviceData("Test device 2", "2", 1),
-                BluetoothDeviceData("Test device 3", "3", 1),
-                BluetoothDeviceData("Test device 4", "4", 1),
-                BluetoothDeviceData("Test device 5", "5", 1)
-            ),
-            mutableStateOf("2"),
-            connectedDeviceAddress = null
-        )
-    )
-
-}
-
-@Preview
 @Composable
-fun MidiDeviceList(@PreviewParameter(MidiDeviceListDataProvider::class) midiDeviceListInput: MidiDeviceListInput) {
+fun MidiDeviceList(
+    toggleScan: () -> Unit,
+    isScanning: Boolean,
+    connect: (String, SharedPreferences) -> Unit,
+    foundDevices: List<BluetoothDeviceData>,
+    selectedDevice: MutableState<String>,
+    connectedDeviceAddress: String?
+) {
 
     Column {
-        midiDeviceListInput.foundDevices.forEach { bluetoothDeviceData ->
-                MidiDeviceEntry(
-                    MidiDeviceEntryInput(
-                        bluetoothDeviceData,
-                        midiDeviceListInput.selectedDevice
-                    )
+        foundDevices.forEach { bluetoothDeviceData ->
+            MidiDeviceEntry(
+                MidiDeviceEntryInput(
+                    bluetoothDeviceData,
+                    selectedDevice
                 )
+            )
         }
         Row(Modifier.fillMaxWidth()) {
-            Text(text = midiDeviceListInput.connectedDeviceAddress.let {
+            Text(text = connectedDeviceAddress.let {
                 if (it == null) {
                     "No device connected"
                 } else {
-                    midiDeviceListInput.foundDevices.filter { it.address == midiDeviceListInput.connectedDeviceAddress }
+                    foundDevices.filter { it.address == connectedDeviceAddress }
                         .first().name
                 }
             })
@@ -82,13 +58,19 @@ fun MidiDeviceList(@PreviewParameter(MidiDeviceListDataProvider::class) midiDevi
             ScanButton(
                 onClick = {
                     Timber.tag("Bluetooth").i("Scan button pressed")
-                    midiDeviceListInput.toggleScan()
+                    toggleScan()
                 },
-                midiDeviceListInput.isScanning
+                isScanning
             )
-            ConnectButton(midiDeviceListInput.selectedDevice.value, onClick = {
-                midiDeviceListInput.selectedDevice.value.apply(midiDeviceListInput.connect)
+
+            val sharedPreferences = LocalContext.current.applicationContext.getSharedPreferences(
+                PREFERENCES_KEY, Context.MODE_PRIVATE
+            )
+            ConnectButton(selectedDevice.value, onClick = {
+                connect(selectedDevice.value, sharedPreferences)
             })
+
+            BluetoothConnect(bluetoothPairing = BluetoothHandler(LocalContext.current))
         }
     }
 }
@@ -146,3 +128,4 @@ fun ConnectButton(selectedDevice: String, onClick: () -> Unit) {
         Text("Connect")
     }
 }
+

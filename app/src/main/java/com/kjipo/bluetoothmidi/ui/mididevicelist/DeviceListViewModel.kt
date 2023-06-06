@@ -1,4 +1,4 @@
-package com.kjipo.bluetoothmidi.devicelist
+package com.kjipo.bluetoothmidi.ui.mididevicelist
 
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
@@ -13,7 +13,6 @@ import timber.log.Timber
 class DeviceListViewModel(
     private val deviceScanner: DeviceScanner,
     private val midiHandler: MidiHandler,
-    private val preferences: SharedPreferences
 ) : ViewModel() {
 
     private val viewModelState = MutableStateFlow(DeviceListViewModelState())
@@ -43,25 +42,34 @@ class DeviceListViewModel(
 
     }
 
-    fun connectToDevice(address: String) {
+    fun connectToDevice(
+        address: String,
+        preferences: SharedPreferences
+    ) {
         viewModelState.update { it.copy(isConnecting = true) }
 
         viewModelScope.launch {
-            if(midiHandler.openDevice(address)) {
-
-                Timber.tag("Bluetooth").i("Test23")
-
-                viewModelState.value.foundDevices.find { it.address == address }?.let { bluetoothDeviceData ->
-                    Timber.tag("Bluetooth").i("Test24")
-                    preferences.edit()
-                        .putString(LAST_CONNECTED_DEVICE_KEY, bluetoothDeviceData.name)
-                        .putString(LAST_CONNECTED_DEVICE_ADDRESS, bluetoothDeviceData.address)
-                        .commit()
+            if (midiHandler.openDevice(address)) {
+                viewModelState.value.foundDevices.find { it.address == address }
+                    ?.let { bluetoothDeviceData ->
+                        preferences.edit()
+                            .putString(LAST_CONNECTED_DEVICE_KEY, bluetoothDeviceData.name)
+                            .putString(LAST_CONNECTED_DEVICE_ADDRESS, bluetoothDeviceData.address)
+                            .commit()
+                    }
+                viewModelState.update {
+                    it.copy(
+                        isConnecting = false,
+                        connectedDeviceAddress = address
+                    )
                 }
-                viewModelState.update { it.copy(isConnecting = false, connectedDeviceAddress = address) }
-            }
-            else {
-                viewModelState.update { it.copy(isConnecting = false, connectedDeviceAddress = null) }
+            } else {
+                viewModelState.update {
+                    it.copy(
+                        isConnecting = false,
+                        connectedDeviceAddress = null
+                    )
+                }
             }
         }
     }
@@ -71,12 +79,11 @@ class DeviceListViewModel(
         fun provideFactory(
             deviceScanner: DeviceScanner,
             midiHandler: MidiHandler,
-            preferences: SharedPreferences
         ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return DeviceListViewModel(deviceScanner, midiHandler, preferences) as T
+                    return DeviceListViewModel(deviceScanner, midiHandler) as T
                 }
             }
     }
@@ -84,7 +91,11 @@ class DeviceListViewModel(
 }
 
 
-class MidiDevicesUiState(val isScanning: Boolean, val foundDevices: List<BluetoothDeviceData>, val connectedDeviceAddress: String?)
+class MidiDevicesUiState(
+    val isScanning: Boolean,
+    val foundDevices: List<BluetoothDeviceData>,
+    val connectedDeviceAddress: String?
+)
 
 
 private data class DeviceListViewModelState(
@@ -95,7 +106,11 @@ private data class DeviceListViewModelState(
 ) {
 
     fun toUiState(): MidiDevicesUiState {
-        return MidiDevicesUiState(isScanning, foundDevices.sortedBy { it.name }, connectedDeviceAddress = connectedDeviceAddress)
+        return MidiDevicesUiState(
+            isScanning,
+            foundDevices.sortedBy { it.name },
+            connectedDeviceAddress = connectedDeviceAddress
+        )
     }
 
 }

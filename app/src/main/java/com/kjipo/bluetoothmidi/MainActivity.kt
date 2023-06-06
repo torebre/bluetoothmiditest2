@@ -1,8 +1,10 @@
 package com.kjipo.bluetoothmidi
 
 import android.Manifest
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.midi.MidiManager
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         requestPermissions()
 
         appContainer = (application as BluetoothMidiApplication).container
+
         setContent {
             val widthSizeClass = calculateWindowSizeClass(this).widthSizeClass
             BluetoothMidiApp(appContainer, widthSizeClass, this)
@@ -59,7 +62,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        if(isFinishing) {
+        if (isFinishing) {
             appContainer.destroy()
         }
     }

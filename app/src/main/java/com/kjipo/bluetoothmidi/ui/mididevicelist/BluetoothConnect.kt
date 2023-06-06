@@ -1,4 +1,4 @@
-package com.kjipo.bluetoothmidi.bluetooth
+package com.kjipo.bluetoothmidi.ui.mididevicelist
 
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 
 
 @Composable
-fun BluetoothConnect(bluetoothPairing: BluetoothPairing) {
+fun BluetoothConnect(bluetoothPairing: BluetoothHandler) {
     val startSenderForResult = ActivityResultContracts.StartIntentSenderForResult()
 
     val launcher =

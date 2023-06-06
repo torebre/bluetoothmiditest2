@@ -1,8 +1,9 @@
 package com.kjipo.bluetoothmidi
 
+import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.media.midi.MidiManager
 import androidx.room.Room
-import com.kjipo.bluetoothmidi.bluetooth.BluetoothPairing
 import com.kjipo.bluetoothmidi.midi.EarTrainer
 import com.kjipo.bluetoothmidi.midi.EarTrainerImpl
 import com.kjipo.bluetoothmidi.midi.MidiHandler
@@ -14,15 +15,15 @@ interface AppContainer {
 
     val deviceScanner: DeviceScanner
 
-    val bluetoothPairing: BluetoothPairing
-
     val sessionDatabase: SessionDatabase
 
-    val midiHandler: MidiHandler
+//    val midiHandler: MidiHandler
 
     val midiSessionRepository: MidiSessionRepository
 
     val earTrainer: EarTrainer
+
+    fun getMidiHandler(): MidiHandler
 
     fun destroy()
 
@@ -30,14 +31,18 @@ interface AppContainer {
 
 
 class AppContainerImpl(private val applicationContext: Context) : AppContainer {
-    private var internalMidiHandlerReference: MidiHandler? = null
+    private var midiHandler: MidiHandler
+
+    init {
+        val bluetoothManager =
+            applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val midiManager = applicationContext.getSystemService(Context.MIDI_SERVICE) as MidiManager
+
+        midiHandler = MidiHandler(bluetoothManager, midiManager)
+    }
 
     override val deviceScanner: DeviceScanner by lazy {
         DeviceScanner(applicationContext)
-    }
-
-    override val bluetoothPairing: BluetoothPairing by lazy {
-        BluetoothPairing(applicationContext)
     }
 
     override val sessionDatabase: SessionDatabase by lazy {
@@ -51,18 +56,17 @@ class AppContainerImpl(private val applicationContext: Context) : AppContainer {
         MidiSessionRepositoryImpl(sessionDatabase)
     }
 
-    override val midiHandler: MidiHandler by lazy {
-        MidiHandler(applicationContext).also {
-            internalMidiHandlerReference = it
-        }
-    }
 
     override val earTrainer: EarTrainer by lazy {
         EarTrainerImpl()
     }
 
+    override fun getMidiHandler(): MidiHandler {
+        return midiHandler
+    }
+
     override fun destroy() {
-        internalMidiHandlerReference?.close()
+        midiHandler.close()
     }
 
 }

@@ -15,7 +15,7 @@ fun NavigationDrawer(
     closeDrawer: () -> Unit,
     modifier: Modifier = Modifier,
     currentRoute: String,
-    navigateToScan: () -> Unit,
+//    navigateToScan: () -> Unit,
     navigateToSessionList: () -> Unit
 ) {
 
@@ -25,11 +25,11 @@ fun NavigationDrawer(
             selected = currentRoute == NavigationDestinations.DEVICE_LIST.name,
             onClick = { navigateToMidiDevices(); closeDrawer() },
         )
-        NavigationDrawerItem(
-            label = { Text("Scan") },
-            selected = currentRoute == NavigationDestinations.SCAN2.name,
-            onClick = { navigateToScan(); closeDrawer() },
-        )
+//        NavigationDrawerItem(
+//            label = { Text("Scan") },
+//            selected = currentRoute == NavigationDestinations.SCAN2.name,
+//            onClick = { navigateToScan(); closeDrawer() },
+//        )
         NavigationDrawerItem(
             label = { Text("MIDI record") },
             selected = currentRoute == NavigationDestinations.MIDI_RECORD.name,
