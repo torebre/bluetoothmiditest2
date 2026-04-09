@@ -1,8 +1,8 @@
 package com.kjipo.bluetoothmidi.midi
 
 import android.bluetooth.BluetoothManager
-import android.content.Context
 import android.media.midi.MidiDevice
+import android.media.midi.MidiDeviceInfo
 import android.media.midi.MidiDeviceInfo.PortInfo.TYPE_INPUT
 import android.media.midi.MidiInputPort
 import android.media.midi.MidiManager
@@ -11,8 +11,10 @@ import android.media.midi.MidiOutputPort
 import android.media.midi.MidiReceiver
 import timber.log.Timber
 
-class MidiHandler(private val bluetoothManager: BluetoothManager,
-                  private val midiManager: MidiManager) : OnDeviceOpenedListener {
+class MidiHandler(
+    private val bluetoothManager: BluetoothManager,
+    private val midiManager: MidiManager
+) {
     private var midiDeviceNullable: MidiDevice? = null
     private var inputPort: MidiInputPort? = null
     private var outputPort: MidiOutputPort? = null
@@ -21,7 +23,7 @@ class MidiHandler(private val bluetoothManager: BluetoothManager,
     private var address: String? = null
 
 
-    fun openDevice(address: String): Boolean {
+    fun openDevice(address: String, callback: (midiDeviceInfo: MidiDeviceInfo) -> Unit) {
         if (midiDeviceNullable != null) {
             // Expecting that only one device will be opened
             throw IllegalStateException("MIDI device already opened")
@@ -41,15 +43,19 @@ class MidiHandler(private val bluetoothManager: BluetoothManager,
 
             midiManager.openBluetoothDevice(
                 deviceToOpen,
-                this,
+                { device ->
+                    device?.let {
+                        Timber.tag("MIDI").i("Device opened: $it")
+
+                        midiDeviceNullable = it
+                        callback(it.info)
+                    }
+                },
                 // TODO Is it necessary to specify a handler?
                 null
             )
             this.address = address
-
-            return true
         }
-        return false
     }
 
 
@@ -91,7 +97,6 @@ class MidiHandler(private val bluetoothManager: BluetoothManager,
                 throw IllegalStateException("Midi device not set up")
             }
             midiDevice.openOutputPort(0)
-
         }
 
         if (outputPort == null) {
@@ -139,27 +144,6 @@ class MidiHandler(private val bluetoothManager: BluetoothManager,
 
         getInputMidiPort()?.send(inputByteBuffer, 0, 3, timeStamp)
     }
-
-
-    override fun onDeviceOpened(device: MidiDevice?) {
-        device?.let {
-            Timber.tag("MIDI").i("Device opened: $it")
-
-//                    viewModelState.update { it.copy(connected = true) }
-            // TODO When will this be closed? Is it when the application closes or earlier?
-//                    addCloseable(device)
-
-//            midiDevice.info.ports.forEach { portInfo ->
-//                Timber.tag("MIDI")
-//                    .i("Name: ${portInfo.name} Type: ${portInfo.type} Port number: ${portInfo.portNumber}")
-//            }
-
-            midiDeviceNullable = it
-
-        }
-    }
-
-
 
 
     fun close() {

@@ -16,6 +16,10 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Timer
+import java.util.TimerTask
+import java.util.concurrent.CountDownLatch
+import kotlin.concurrent.timerTask
 
 
 class HomeScreenModel(
@@ -24,7 +28,6 @@ class HomeScreenModel(
 ) :
     ViewModel() {
 
-    private var lastConnectedDevice: String? = null
     private var lastConnectedDeviceAddress: String? = null
 
     private val viewModelState = MutableStateFlow(HomeScreenModelUiState())
@@ -52,23 +55,24 @@ class HomeScreenModel(
     }
 
     fun attemptConnectToPreviouslyConnectedDevice(lastConnectedDeviceAddress: String) {
-        lastConnectedDeviceAddress?.let { address ->
+        lastConnectedDeviceAddress.let { address ->
             viewModelState.update { it.copy(state = HomeState.CONNECTING) }
+
+            val latch = CountDownLatch(1)
+            Timer("midi_device_connecting").schedule(timerTask {
+                if (latch.count == 1L) {
+                    latch.countDown()
+                    viewModelState.update { it.copy(state = HomeState.FAILED_TO_CONNECT) }
+                }
+            }, 10000)
 
             viewModelScope.launch {
                 Timber.tag("Bluetooth").i("Opening device with address: $address")
-                if (midiHandler.openDevice(address)) {
-                    Timber.tag("Bluetooth").i("Opened device")
+                midiHandler.openDevice(address) {
+                    latch.countDown()
                     viewModelState.update {
                         it.copy(
                             state = HomeState.CONNECTED,
-                        )
-                    }
-                } else {
-                    Timber.tag("Bluetooth").i("Failed to open device")
-                    viewModelState.update {
-                        it.copy(
-                            state = HomeState.FAILED_TO_CONNECT,
                         )
                     }
                 }

@@ -71,6 +71,9 @@ fun HomeRouteScreen(
             style = MaterialTheme.typography.h6,
             color = Color.Black
         )
+
+        Text(text = homeScreenModelUiState.state.name)
+
         Text(
             text = "Previously connected device: $lastConnectedDevice",
             modifier = Modifier

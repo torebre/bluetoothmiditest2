@@ -9,6 +9,9 @@ import com.kjipo.bluetoothmidi.midi.MidiHandler
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Timer
+import java.util.concurrent.CountDownLatch
+import kotlin.concurrent.timerTask
 
 class DeviceListViewModel(
     private val deviceScanner: DeviceScanner,
@@ -48,28 +51,37 @@ class DeviceListViewModel(
     ) {
         viewModelState.update { it.copy(isConnecting = true) }
 
-        viewModelScope.launch {
-            if (midiHandler.openDevice(address)) {
-                viewModelState.value.foundDevices.find { it.address == address }
-                    ?.let { bluetoothDeviceData ->
-                        preferences.edit()
-                            .putString(LAST_CONNECTED_DEVICE_KEY, bluetoothDeviceData.name)
-                            .putString(LAST_CONNECTED_DEVICE_ADDRESS, bluetoothDeviceData.address)
-                            .commit()
-                    }
-                viewModelState.update {
-                    it.copy(
-                        isConnecting = false,
-                        connectedDeviceAddress = address
-                    )
-                }
-            } else {
+        val latch = CountDownLatch(1)
+        Timer("midi_device_connecting").schedule(timerTask {
+            if (latch.count == 1L) {
+                latch.countDown()
                 viewModelState.update {
                     it.copy(
                         isConnecting = false,
                         connectedDeviceAddress = null
                     )
                 }
+            }
+        }, 10000)
+
+        viewModelScope.launch {
+            midiHandler.openDevice(address) {
+                latch.countDown()
+                viewModelState.value.foundDevices.find { it.address == address }
+                    ?.let { bluetoothDeviceData ->
+                        preferences.edit()
+                            .putString(LAST_CONNECTED_DEVICE_KEY, bluetoothDeviceData.name)
+                            .putString(LAST_CONNECTED_DEVICE_ADDRESS, address)
+                            .commit()
+                    }
+
+                viewModelState.update {
+                    it.copy(
+                        isConnecting = false,
+                        connectedDeviceAddress = address
+                    )
+                }
+
             }
         }
     }
