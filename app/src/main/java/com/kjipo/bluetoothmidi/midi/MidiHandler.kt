@@ -6,7 +6,6 @@ import android.media.midi.MidiDeviceInfo
 import android.media.midi.MidiDeviceInfo.PortInfo.TYPE_INPUT
 import android.media.midi.MidiInputPort
 import android.media.midi.MidiManager
-import android.media.midi.MidiManager.OnDeviceOpenedListener
 import android.media.midi.MidiOutputPort
 import android.media.midi.MidiReceiver
 import timber.log.Timber

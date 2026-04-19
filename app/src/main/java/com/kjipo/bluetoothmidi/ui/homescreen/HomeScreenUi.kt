@@ -20,12 +20,13 @@ import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun HomeRoute(homeScreenModel: HomeScreenModel) {
+fun HomeRoute(homeScreenModel: HomeScreenModel, onStartSession: () -> Unit) {
     val uiState by homeScreenModel.uiState.collectAsState()
 
     HomeRouteScreen(
         uiState,
-        { address -> homeScreenModel.attemptConnectToPreviouslyConnectedDevice(address) }
+        { address -> homeScreenModel.attemptConnectToPreviouslyConnectedDevice(address) },
+        onStartSession
     )
 
 }
@@ -34,7 +35,8 @@ fun HomeRoute(homeScreenModel: HomeScreenModel) {
 @Composable
 fun HomeRouteScreen(
     homeScreenModelUiState: HomeScreenModelUiState,
-    connectToLastConnectedDevice: (String) -> Unit
+    connectToLastConnectedDevice: (String) -> Unit,
+    onStartSession: () -> Unit
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.applicationContext.getSharedPreferences(
@@ -122,6 +124,14 @@ fun HomeRouteScreen(
                     )
                 }
             }
+        }
+
+        Button(
+            onClick = onStartSession,
+            enabled = homeScreenModelUiState.state == HomeState.CONNECTED,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Start session")
         }
 
         PreviousSession(midiSessionData = homeScreenModelUiState.previousSession)

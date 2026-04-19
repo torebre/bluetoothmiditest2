@@ -136,6 +136,7 @@ fun AppNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String = NavigationDestinations.HOME.name,
     navigateToHome: () -> Unit,
+    navigateToMidiRecord: () -> Unit,
     navigateToSessionInformation: (Long) -> Unit,
     mainActivity: Activity,
     deviceScanner: DeviceScanner,
@@ -160,7 +161,9 @@ fun AppNavGraph(
                 )
             )
 
-            HomeRoute(homeScreenViewModel)
+            HomeRoute(homeScreenViewModel) {
+                navigateToMidiRecord()
+            }
         }
 
         composable(NavigationDestinations.DEVICE_LIST.name) {
@@ -200,33 +203,33 @@ fun AppNavGraph(
         ) {
             val sessionViewModel: MidiSessionListViewModel =
                 viewModel(factory = MidiSessionListViewModel.provideFactory(midiSessionRepository))
-            MidiSessionUi(midiSessionUiInputData = MidiSessionUiInput(
-                sessionViewModel.uiState,
-                navigateToSessionInformation
-            ) { sessionIds ->
-//                val directoryToExportTo = File(mainActivity.applicationContext.cacheDir) //, "export_files")
-//                val fileToExportTo = File(directoryToExportTo, "export_file_temp.zip")
-                val fileToExportTo =
-                    File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
+            val uiState by sessionViewModel.uiState.collectAsState()
 
-                // TODO The view model should not have a reference to the activity, something which it gets indirectly here
-                val shareCallback = {
-                    val fileUri = FileProvider.getUriForFile(
-                        mainActivity.applicationContext,
-                        "com.kjipo.bluetoothmidi",
-                        fileToExportTo
-                    )
+            MidiSessionUi(
+                midiSessionUiState = uiState,
+                midiSessionUiInputData = MidiSessionUiInput(
+                    navigateToSessionInformation
+                ) { sessionIds ->
+                    val fileToExportTo =
+                        File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
 
-                    val shareIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_STREAM, fileUri)
-                        type = "application/zip"
+                    val shareCallback = {
+                        val fileUri = FileProvider.getUriForFile(
+                            mainActivity.applicationContext,
+                            "com.kjipo.bluetoothmidi",
+                            fileToExportTo
+                        )
+
+                        val shareIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_STREAM, fileUri)
+                            type = "application/zip"
+                        }
+                        mainActivity.startActivity(shareIntent)
                     }
-                    mainActivity.startActivity(shareIntent)
-                }
 
-                sessionViewModel.exportData(sessionIds, fileToExportTo, shareCallback)
-            })
+                    sessionViewModel.exportData(sessionIds, fileToExportTo, shareCallback)
+                })
         }
 
         composable(NavigationDestinations.MIDI_PLAY.name) {

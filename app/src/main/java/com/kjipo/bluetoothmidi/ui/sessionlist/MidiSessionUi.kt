@@ -1,28 +1,39 @@
 package com.kjipo.bluetoothmidi.ui.sessionlist
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.Alignment
 import com.kjipo.bluetoothmidi.MidiSessionUiState
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import timber.log.Timber
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.roundToLong
 
 
 data class MidiSessionData(
@@ -32,63 +43,22 @@ data class MidiSessionData(
 )
 
 class MidiSessionUiInput(
-    val midiSessionUiState: StateFlow<MidiSessionUiState>,
     val navigateToSessionInformation: (Long) -> Unit,
     val exportSessions: (Collection<Long>) -> Unit
 )
 
-class MidiSessionUiParameterProvider : PreviewParameterProvider<MidiSessionUiInput> {
-
-    override val values = sequenceOf(
-        MidiSessionUiInput(
-            MutableStateFlow(
-                MidiSessionUiState(
-                    createSessions()
-                )
-            ),
-            {
-                // Do nothing
-            },
-            {
-                // Do nothing
-            }
-        ))
-
-
-    private fun createSessions(): List<MidiSessionData> {
-        return (1L..10L).map { id ->
-            val stop = (Math.random() * 10).roundToLong()
-            val start = stop - (Math.random() * 2).roundToLong()
-            MidiSessionData(
-                id,
-                LocalDateTime.now().minusDays(start),
-                LocalDateTime.now().minusDays(stop)
-            )
-        }.toList()
-    }
-
-}
-
-@Preview
 @Composable
 fun MidiSessionUi(
-    @PreviewParameter(MidiSessionUiParameterProvider::class) midiSessionUiInputData: MidiSessionUiInput
+    midiSessionUiState: MidiSessionUiState,
+    midiSessionUiInputData: MidiSessionUiInput
 ) {
-    val sessionDataUi by midiSessionUiInputData.midiSessionUiState.collectAsState()
     val selectedSessions = remember {
         mutableStateOf(setOf<Long>())
     }
-//    val openDocumentTreeLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocumentTree(),
-//        onResult = { uri ->
-//            uri?.let {
-//                midiSessionUiInputData.exportSessions(selectedSessions.value, it)
-//            }
-//        })
-
 
     Column {
-        Row {
-            sessionDataUi.storedSessions.forEach { midiSessionData ->
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(midiSessionUiState.storedSessions) { midiSessionData ->
                 SessionEntry(
                     SessionEntryData(
                         midiSessionData,
@@ -106,16 +76,14 @@ fun MidiSessionUi(
             }
         }
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             ExportSessions(selectedSessions.value.isNotEmpty()) {
-//                openDocumentTreeLauncher.launch(null)
                 midiSessionUiInputData.exportSessions(selectedSessions.value)
             }
         }
     }
-
 }
 
 class SessionEntryData(
@@ -125,70 +93,48 @@ class SessionEntryData(
     val toggleSelection: () -> Unit
 )
 
-class SessionEntryDataProvider : PreviewParameterProvider<SessionEntryData> {
-    override val values = sequenceOf(
-        SessionEntryData(
-            MidiSessionData(
-                1,
-                LocalDateTime.now().minusDays(2),
-                LocalDateTime.now().minusDays(1)
-            ),
-            true,
-            {
-                // Do nothing
-            },
-            {
-                // Do nothing
-            }
-        )
-    )
-}
-
-@Preview
 @Composable
-fun SessionEntry(@PreviewParameter(SessionEntryDataProvider::class) sessionEntryData: SessionEntryData) {
-    Column {
-        LazyRow(
-            Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, top = 2.dp)
+fun SessionEntry(sessionEntryData: SessionEntryData) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            item {
-                Column {
-                    Checkbox(checked = sessionEntryData.selected,
-                        onCheckedChange = {
-                            sessionEntryData.toggleSelection()
-                        })
-                }
-                Column(modifier = Modifier.padding(start = 2.dp)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp, bottom = 2.dp)
-                    ) {
-                        Column {
-                            Text(
-                                DateTimeFormatter.ISO_DATE.format(sessionEntryData.midiSessionData.start),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                getFormattedDuration(sessionEntryData.midiSessionData),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        Column {
-                            IconButton(
-                                onClick = {
-                                    sessionEntryData.navigateToSessionInformation(sessionEntryData.midiSessionData.midiSessionId)
-                                }) {
-                                Icon(
-                                    imageVector = Icons.Default.Info,
-                                    contentDescription = "Session details"
-                                )
-                            }
-                        }
-                    }
-                }
+            Checkbox(
+                checked = sessionEntryData.selected,
+                onCheckedChange = { sessionEntryData.toggleSelection() }
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                        .format(sessionEntryData.midiSessionData.start),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Duration: ${getFormattedDuration(sessionEntryData.midiSessionData)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            IconButton(onClick = {
+                sessionEntryData.navigateToSessionInformation(sessionEntryData.midiSessionData.midiSessionId)
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Session details",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -254,4 +200,3 @@ fun getFormattedDuration(start: LocalDateTime, stop: LocalDateTime): String {
         }"
     }
 }
-
