@@ -10,16 +10,16 @@ interface SessionDao {
     suspend fun insertSession(session: Session): Long
 
     @Update
-    suspend fun updateSession(session: Session)
+    suspend fun updateSession(session: Session): Int
 
     @Delete
-    suspend fun deleteSession(session: Session)
+    suspend fun deleteSession(session: Session): Int
 
     @Query("SELECT * FROM session")
     suspend fun getAllSessions(): List<Session>
 
     @Insert
-    suspend fun addMidiMessage(sessionMidiMessage: SessionMidiMessage)
+    suspend fun addMidiMessage(sessionMidiMessage: SessionMidiMessage): Long
 
     @Query("SELECT id, sessionId, midiCommand, midiData, channel, timestamp FROM sessionmidimessage WHERE sessionmidimessage.sessionId = :sessionId")
     suspend fun getAllMidiMessagesForSession(sessionId: Long): List<SessionMidiMessage>
