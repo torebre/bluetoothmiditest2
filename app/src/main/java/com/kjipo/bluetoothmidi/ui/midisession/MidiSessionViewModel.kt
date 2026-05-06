@@ -36,12 +36,9 @@ class MidiSessionViewModel(
         viewModelScope.launch {
             midiHandler.connectToOutputPort(getMidiReceiver(getMidiMessageTranslator()))
         }
-
-        // TODO Start session somewhere else
-        startSession()
     }
 
-    private fun startSession() {
+    fun startSession() {
         viewModelScope.launch {
             midiSessionRepository.startSession()
             updateTimeTracker()
