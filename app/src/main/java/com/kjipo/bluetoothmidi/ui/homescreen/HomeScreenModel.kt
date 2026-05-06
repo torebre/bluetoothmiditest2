@@ -17,7 +17,6 @@ import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Timer
-import java.util.TimerTask
 import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.timerTask
 
@@ -28,15 +27,13 @@ class HomeScreenModel(
 ) :
     ViewModel() {
 
-    private var lastConnectedDeviceAddress: String? = null
-
     private val viewModelState = MutableStateFlow(HomeScreenModelUiState())
 
     val uiState =
         viewModelState.stateIn(viewModelScope, SharingStarted.Eagerly, viewModelState.value)
 
     init {
-        Timber.tag("Bluetooth").i("Last connected device address: $lastConnectedDeviceAddress")
+        loadData()
     }
 
 
