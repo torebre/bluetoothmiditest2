@@ -5,7 +5,6 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -35,6 +34,7 @@ fun PlayMidi(
 
     Column {
         val modeText = when (uiState.playState) {
+            PlayState.IDLE -> "Idle"
             PlayState.PLAYING -> "Playing"
             PlayState.USER_INPUT -> "User input"
             PlayState.PLAYING_USER_INPUT -> "Playing user input"

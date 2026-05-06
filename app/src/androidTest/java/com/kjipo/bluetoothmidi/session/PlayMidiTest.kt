@@ -24,7 +24,7 @@ class PlayMidiTest {
 
     @Test
     fun modelStatesUpdated() {
-        val uiState = PlayViewUiState(PlayState.WAITING, 0)
+        val uiState = PlayViewUiState(PlayState.IDLE, 0)
         var playClicked = false
         val onClickPlay = {
             playClicked = true

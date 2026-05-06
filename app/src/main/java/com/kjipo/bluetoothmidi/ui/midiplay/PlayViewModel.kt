@@ -236,6 +236,7 @@ class PlayViewModel(
 
 
 enum class PlayState {
+    IDLE,
     PLAYING,
     USER_INPUT,
     PLAYING_USER_INPUT,
