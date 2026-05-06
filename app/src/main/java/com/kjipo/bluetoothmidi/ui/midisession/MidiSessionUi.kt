@@ -1,24 +1,26 @@
-package com.kjipo.bluetoothmidi
+package com.kjipo.bluetoothmidi.ui.midisession
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.kjipo.bluetoothmidi.connect.MidiSessionViewModel
 import com.kjipo.bluetoothmidi.connect.MidiSessionUiState
 
 @Composable
 fun MidiSessionRoute(midiSessionViewModel: MidiSessionViewModel, navigateToHome: () -> Unit) {
     val uiState by midiSessionViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        midiSessionViewModel.startSession()
+    }
 
     MidiSessionRoute(
         MidiSessionRouteInputHolder(
@@ -39,25 +41,8 @@ class MidiSessionRouteInputHolder(
 )
 
 
-class ConnectRouteInputHolderProvider : PreviewParameterProvider<MidiSessionRouteInputHolder> {
-    override val values = sequenceOf(
-        MidiSessionRouteInputHolder(
-            {
-                // Do nothing
-            },
-            MidiSessionUiState(
-                "",
-                false,
-                0,
-                false
-            )
-        )
-    )
-}
-
-@Preview(showBackground = true)
 @Composable
-fun MidiSessionRoute(@PreviewParameter(ConnectRouteInputHolderProvider::class) midiSessionRouteInputHolder: MidiSessionRouteInputHolder) {
+fun MidiSessionRoute(midiSessionRouteInputHolder: MidiSessionRouteInputHolder) {
 
     Column {
         Text("Connected: ${midiSessionRouteInputHolder.midiDeviceConnectUiState.connected}")
