@@ -1,8 +1,10 @@
-package com.kjipo.bluetoothmidi
+package com.kjipo.bluetoothmidi.ui.homescreen
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -11,9 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
-import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModelUiState
-import com.kjipo.bluetoothmidi.ui.homescreen.HomeState
+import com.kjipo.bluetoothmidi.LAST_CONNECTED_DEVICE_ADDRESS
+import com.kjipo.bluetoothmidi.LAST_CONNECTED_DEVICE_KEY
+import com.kjipo.bluetoothmidi.PREFERENCES_KEY
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionData
 import com.kjipo.bluetoothmidi.ui.sessionlist.getFormattedDuration
 import java.time.format.DateTimeFormatter
@@ -22,6 +24,10 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun HomeRoute(homeScreenModel: HomeScreenModel, onStartSession: () -> Unit) {
     val uiState by homeScreenModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        homeScreenModel.loadData()
+    }
 
     HomeRouteScreen(
         uiState,
@@ -40,7 +46,7 @@ fun HomeRouteScreen(
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.applicationContext.getSharedPreferences(
-        PREFERENCES_KEY, android.content.Context.MODE_PRIVATE
+        PREFERENCES_KEY, Context.MODE_PRIVATE
     )
     val lastConnectedDeviceName = sharedPreferences.getString(LAST_CONNECTED_DEVICE_KEY, null)
     val lastConnectedDeviceAddress = sharedPreferences.getString(LAST_CONNECTED_DEVICE_ADDRESS, null)
