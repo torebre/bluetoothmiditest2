@@ -1,13 +1,9 @@
 package com.kjipo.bluetoothmidi
 
-import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,8 +15,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.permissions.*
-import com.kjipo.bluetoothmidi.ui.mididevicelist.BluetoothConnect
-import com.kjipo.bluetoothmidi.ui.mididevicelist.BluetoothHandler
 import com.kjipo.bluetoothmidi.connect.MidiSessionViewModel
 import com.kjipo.bluetoothmidi.ui.mididevicelist.DeviceListViewModel
 import com.kjipo.bluetoothmidi.midi.EarTrainer
@@ -28,9 +22,11 @@ import com.kjipo.bluetoothmidi.midi.MidiHandler
 import com.kjipo.bluetoothmidi.ui.midiplay.PlayViewModel
 import com.kjipo.bluetoothmidi.session.MidiSessionRepository
 import com.kjipo.bluetoothmidi.session.SessionDatabase
+import com.kjipo.bluetoothmidi.ui.homescreen.HomeRoute
 import com.kjipo.bluetoothmidi.ui.homescreen.HomeScreenModel
 import com.kjipo.bluetoothmidi.ui.mididevicelist.MidiDeviceListRoute
 import com.kjipo.bluetoothmidi.ui.midiplay.PlayMidi
+import com.kjipo.bluetoothmidi.ui.midisession.MidiSessionRoute
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUi
 import com.kjipo.bluetoothmidi.ui.sessionlist.MidiSessionUiInput
 import com.kjipo.bluetoothmidi.ui.sessionview.SessionScreenRoute
