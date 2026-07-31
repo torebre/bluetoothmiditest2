@@ -46,7 +46,11 @@
             android:name="com.kjipo.bluetoothmidi.ui.sessionlist.ExportSessionsFileProvider"
             android:authorities="com.kjipo.bluetoothmidi"
             android:exported="false"
-            android:grantUriPermissions="true"/>
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/export_files_path" />
+        </provider>
     </application>
 
 </manifest>
