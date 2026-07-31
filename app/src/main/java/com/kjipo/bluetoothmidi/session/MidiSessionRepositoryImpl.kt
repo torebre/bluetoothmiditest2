@@ -72,4 +72,8 @@ class MidiSessionRepositoryImpl(private val sessionDatabase: SessionDatabase) :
         return sessionDatabase.sessionDao().getSessionsWithMessages(sessionIds)
     }
 
+    override suspend fun deleteSessions(sessionIds: Collection<Long>) {
+        sessionDatabase.sessionDao().deleteSessions(sessionIds)
+    }
+
 }

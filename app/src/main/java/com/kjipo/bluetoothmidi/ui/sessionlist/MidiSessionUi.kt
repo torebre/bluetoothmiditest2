@@ -7,17 +7,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +45,8 @@ data class MidiSessionData(
 
 class MidiSessionUiInput(
     val navigateToSessionInformation: (Long) -> Unit,
-    val exportSessions: (Collection<Long>) -> Unit
+    val exportSessions: (Collection<Long>) -> Unit,
+    val deleteSessions: (Collection<Long>) -> Unit
 )
 
 @Composable
@@ -54,6 +56,10 @@ fun MidiSessionUi(
 ) {
     val selectedSessions = remember {
         mutableStateOf(setOf<Long>())
+    }
+
+    val showDeleteConfirmation = remember {
+        mutableStateOf(false)
     }
 
     Column {
@@ -82,7 +88,33 @@ fun MidiSessionUi(
             ExportSessions(selectedSessions.value.isNotEmpty()) {
                 midiSessionUiInputData.exportSessions(selectedSessions.value)
             }
+            Spacer(modifier = Modifier.width(8.dp))
+            DeleteSessions(selectedSessions.value.isNotEmpty()) {
+                showDeleteConfirmation.value = true
+            }
         }
+    }
+
+    if (showDeleteConfirmation.value) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation.value = false },
+            title = { Text("Delete Sessions") },
+            text = { Text("Are you sure you want to delete the selected sessions?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    midiSessionUiInputData.deleteSessions(selectedSessions.value)
+                    selectedSessions.value = emptySet()
+                    showDeleteConfirmation.value = false
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation.value = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -143,24 +175,19 @@ fun SessionEntry(sessionEntryData: SessionEntryData) {
 
 @Composable
 fun ExportSessions(enabled: Boolean, exportSessions: () -> Unit) {
-//    val startSenderForResult = ActivityResultContracts.StartIntentSenderForResult()
-
-//    val launcher =
-//        rememberLauncherForActivityResult(contract = startSenderForResult) { activityResult ->
-//            when (activityResult.resultCode) {
-//                Activity.RESULT_OK -> {
-//                    val deviceToPair: BluetoothDevice? =
-//                        activityResult.data?.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE)
-//                    deviceToPair?.createBond()
-//                }
-//
-//            }
-//
-//        }
-
-
     Button(enabled = enabled, onClick = exportSessions) {
         Text("Export")
+    }
+}
+
+@Composable
+fun DeleteSessions(enabled: Boolean, deleteSessions: () -> Unit) {
+    Button(
+        enabled = enabled,
+        onClick = deleteSessions,
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+    ) {
+        Text("Delete")
     }
 }
 

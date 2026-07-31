@@ -34,6 +34,9 @@ interface SessionDao {
     @Query("SELECT * FROM session WHERE uid IN (:sessionIds)")
     suspend fun getSessionsWithMessages(sessionIds: Collection<Long>): List<SessionWithMessages>
 
+    @Query("DELETE FROM session WHERE uid IN (:sessionIds)")
+    suspend fun deleteSessions(sessionIds: Collection<Long>)
+
     @Query("SELECT * FROM session ORDER BY session.uid DESC LIMIT 1")
     fun getMostRecentSession(): Session?
 

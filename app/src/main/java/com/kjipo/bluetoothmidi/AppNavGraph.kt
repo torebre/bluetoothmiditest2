@@ -204,28 +204,32 @@ fun AppNavGraph(
             MidiSessionUi(
                 midiSessionUiState = uiState,
                 midiSessionUiInputData = MidiSessionUiInput(
-                    navigateToSessionInformation
-                ) { sessionIds ->
-                    val fileToExportTo =
-                        File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
+                    navigateToSessionInformation = navigateToSessionInformation,
+                    exportSessions = { sessionIds ->
+                        val fileToExportTo =
+                            File(mainActivity.applicationContext.cacheDir, "export_file_temp.zip")
 
-                    val shareCallback = {
-                        val fileUri = FileProvider.getUriForFile(
-                            mainActivity.applicationContext,
-                            "com.kjipo.bluetoothmidi",
-                            fileToExportTo
-                        )
+                        val shareCallback = {
+                            val fileUri = FileProvider.getUriForFile(
+                                mainActivity.applicationContext,
+                                "com.kjipo.bluetoothmidi",
+                                fileToExportTo
+                            )
 
-                        val shareIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_STREAM, fileUri)
-                            type = "application/zip"
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_STREAM, fileUri)
+                                type = "application/zip"
+                            }
+                            mainActivity.startActivity(shareIntent)
                         }
-                        mainActivity.startActivity(shareIntent)
-                    }
 
-                    sessionViewModel.exportData(sessionIds, fileToExportTo, shareCallback)
-                })
+                        sessionViewModel.exportData(sessionIds, fileToExportTo, shareCallback)
+                    },
+                    deleteSessions = { sessionIds ->
+                        sessionViewModel.deleteSessions(sessionIds)
+                    }
+                ))
         }
 
         composable(NavigationDestinations.MIDI_PLAY.name) {

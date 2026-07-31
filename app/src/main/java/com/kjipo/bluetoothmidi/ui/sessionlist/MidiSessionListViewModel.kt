@@ -29,6 +29,10 @@ class MidiSessionListViewModel(
         viewModelState.stateIn(viewModelScope, SharingStarted.Eagerly, viewModelState.value)
 
     init {
+        loadSessions()
+    }
+
+    private fun loadSessions() {
         viewModelScope.launch {
             val storedSessions = midiSessionRepository.getStoredSessions().map { midiSession ->
                 MidiSessionData(
@@ -54,6 +58,13 @@ class MidiSessionListViewModel(
             }
         }
 
+    }
+
+    fun deleteSessions(sessionIds: Collection<Long>) {
+        viewModelScope.launch {
+            midiSessionRepository.deleteSessions(sessionIds)
+            loadSessions()
+        }
     }
 
 

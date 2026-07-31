@@ -19,5 +19,5 @@ interface MidiSessionRepository {
     suspend fun getSessions(sessionIds: Collection<Long>): List<Session>
 
     suspend fun getSessionsAndMessages(sessionIds: Collection<Long>): List<SessionWithMessages>
-
+    suspend fun deleteSessions(sessionIds: Collection<Long>)
 }
